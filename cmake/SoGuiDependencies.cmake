@@ -1,0 +1,16 @@
+set(CMAKE_POLICY_VERSION_MINIMUM "3.5")
+
+set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
+set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+set(GLFW_BUILD_WAYLAND OFF CACHE BOOL "" FORCE)
+set(GLFW_INSTALL OFF CACHE BOOL "" FORCE)
+add_subdirectory(${PROJECT_SOURCE_DIR}/third_party/glfw)
+
+find_package(OpenGL REQUIRED)
+
+if(SOGUI_BUILD_TESTS)
+    add_subdirectory(${PROJECT_SOURCE_DIR}/third_party/doctest)
+endif()
+
+set(imgui_SOURCE_DIR ${PROJECT_SOURCE_DIR}/third_party/imgui CACHE INTERNAL "")
