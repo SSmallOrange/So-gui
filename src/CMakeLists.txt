@@ -15,6 +15,13 @@ add_library(sogui::sogui ALIAS sogui)
 target_include_directories(sogui INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries(sogui INTERFACE sogui::imgui)
 
+# sogui_headers
+file(GLOB_RECURSE SOGUI_HEADERS CONFIGURE_DEPENDS
+    ${CMAKE_CURRENT_SOURCE_DIR}/sogui/*.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/sogui/*.hpp)
+add_custom_target(sogui_headers SOURCES ${SOGUI_HEADERS})
+source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR}/sogui PREFIX "sogui" FILES ${SOGUI_HEADERS})
+
 # sogui_imgui_backends
 add_library(sogui_imgui_backends STATIC
     ${imgui_SOURCE_DIR}/backends/imgui_impl_glfw.cpp
