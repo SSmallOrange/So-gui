@@ -18,13 +18,6 @@ target_include_directories(sogui PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries(sogui PUBLIC sogui::imgui)
 sogui_set_warnings(sogui)
 
-# sogui_headers
-file(GLOB_RECURSE SOGUI_HEADERS CONFIGURE_DEPENDS
-    ${CMAKE_CURRENT_SOURCE_DIR}/sogui/*.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/sogui/*.hpp)
-add_custom_target(sogui_headers SOURCES ${SOGUI_HEADERS})
-source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR}/sogui PREFIX "sogui" FILES ${SOGUI_HEADERS})
-
 # sogui_imgui_backends
 add_library(sogui_imgui_backends STATIC
     ${imgui_SOURCE_DIR}/backends/imgui_impl_glfw.cpp
