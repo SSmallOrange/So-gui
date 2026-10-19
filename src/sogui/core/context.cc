@@ -1,4 +1,4 @@
-#include <sogui/sogui_internal.hpp>
+#include <sogui/sogui_internal.h>
 
 #include <imgui.h>
 

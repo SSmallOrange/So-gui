@@ -1,6 +1,6 @@
 #pragma once
 
-#include <sogui/sogui.hpp>
+#include <sogui/sogui.h>
 
 #include <atomic>
 

@@ -1,5 +1,5 @@
-#include <sogui/sogui.hpp>
-#include <sogui/app/app.hpp>
+#include <sogui/sogui.h>
+#include <sogui/app.h>
 
 int main() {
     return SoGui::RunApp({

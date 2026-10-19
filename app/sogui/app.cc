@@ -1,4 +1,4 @@
-#include <sogui/app/app.hpp>
+#include <sogui/app.h>
 
 namespace SoGui {
 

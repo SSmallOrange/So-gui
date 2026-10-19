@@ -1,5 +1,5 @@
-#include <sogui/app/app.hpp>
-#include <sogui/sogui.hpp>
+#include <sogui/app.h>
+#include <sogui/sogui.h>
 
 #include <imgui.h>
 #include <imgui_impl_glfw.h>

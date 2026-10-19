@@ -1,4 +1,4 @@
-#include <sogui/demo/sogui_demo.hpp>
+#include <sogui/demo/sogui_demo.h>
 
 #include <imgui.h>
 
