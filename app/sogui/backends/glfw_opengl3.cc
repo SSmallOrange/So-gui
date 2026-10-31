@@ -88,7 +88,8 @@ int RunGlfwOpengl3(const AppConfig& config) {
         int display_h = 0;
         glfwGetFramebufferSize(window, &display_w, &display_h);
         glViewport(0, 0, display_w, display_h);
-        glClearColor(0.08f, 0.08f, 0.10f, 1.0f);
+        const ImVec4 clearColor = SoGui::GetColor(SoGui::Col::Bg1);
+        glClearColor(clearColor.x, clearColor.y, clearColor.z, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 

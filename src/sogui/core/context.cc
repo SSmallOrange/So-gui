@@ -6,10 +6,11 @@ namespace SoGui {
 
 static Context* g_currentContext = nullptr;
 
-Context* CreateContext(const ContextConfig&) {
-    DestroyContext();
+Context* CreateContext(const ContextConfig& config) {
     Context* ctx = IM_NEW(Context)();
-    g_currentContext = ctx;
+    ThemeInitialize(ctx->theme, config);
+    if (g_currentContext == nullptr)
+        SetCurrentContext(ctx);
     return ctx;
 }
 
@@ -17,7 +18,7 @@ void DestroyContext(Context* ctx) {
     if (ctx == nullptr)
         ctx = g_currentContext;
     if (ctx == g_currentContext)
-        g_currentContext = nullptr;
+        SetCurrentContext(nullptr);
     IM_DELETE(ctx);
 }
 
@@ -31,13 +32,14 @@ void NewFrame() {
     IM_ASSERT(ImGui::GetCurrentContext() != nullptr &&
               "ImGui::CreateContext() must be called before SoGui::NewFrame()");
     ctx->frameCount++;
+    ThemeNewFrame(ctx->theme);
 }
 
 void EndFrame() {
     Context* ctx = GetCurrentContext();
     IM_ASSERT(ctx != nullptr && "SoGui::EndFrame() called without SoGui::NewFrame()");
     IM_ASSERT(ImGui::GetCurrentContext() != nullptr && "ImGui context missing in SoGui::EndFrame()");
-    (void)ctx;
+    ThemeEndFrame(ctx->theme);
 }
 
 void RequestRedraw() {
