@@ -32,11 +32,28 @@ void ThemeNewFrame(ThemeState& state);
 void ThemeEndFrame(const ThemeState& state);
 void ApplyToImGuiStyle(const ThemeState& state, ImGuiStyle& style);
 
+// Font
+inline constexpr int kFontWeightCount = static_cast<int>(FontWeight::COUNT);
+
+struct FontEntry {
+    ImFont* font = nullptr;        // 属于 ImGui 图集
+    float   heightPerEm = 1.0f;    // (ascender - descender) / unitsPerEm
+    float   ascentRatio = 0.0f;    // ascender / (ascender - descender)
+};
+
+struct FontState {
+    FontEntry entries[kFontWeightCount];
+};
+
+// 字体不在当前 ImGui 图集中时返回 nullptr
+const FontEntry* FindFont(FontWeight weight);
+
 // Context
 struct Context {
     unsigned long long frameCount = 0;
     std::atomic<bool>  redrawRequested{false};
     ThemeState         theme;
+    FontState          fonts;
 };
 
 } // namespace SoGui

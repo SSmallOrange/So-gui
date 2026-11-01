@@ -1,5 +1,7 @@
 #include <sogui/demo/sogui_demo.h>
 
+#include <sogui/core/font.h>
+#include <sogui/core/text.h>
 #include <sogui/core/theme.h>
 
 #include <imgui.h>
@@ -148,6 +150,86 @@ void ShowPreviewSection() {
     ImGui::EndDisabled();
 }
 
+void DrawLineBoxes(TextStyle style) {
+    const ImVec2 min = ImGui::GetItemRectMin();
+    const ImVec2 max = ImGui::GetItemRectMax();
+    const TextMetrics metrics = GetTextMetrics(style);
+    ImDrawList* drawList = ImGui::GetWindowDrawList();
+    drawList->AddRect(min, max, GetColorU32(Col::Border));
+    for (float top = min.y; top < max.y - 0.5f; top += metrics.lineHeight) {
+        const float baseline = top + metrics.baseline;
+        drawList->AddLine(ImVec2(min.x, top), ImVec2(max.x, top), GetColorU32(Col::BorderAlpha));
+        drawList->AddLine(ImVec2(min.x, baseline), ImVec2(max.x, baseline), GetColorU32(Col::Accent, 0.6f));
+    }
+}
+
+void ShowSample(const char* text, TextStyle style, bool showBoxes) {
+    Text(text, style);
+    if (showBoxes)
+        DrawLineBoxes(style);
+}
+
+void ShowTypographySection() {
+    ImGui::SeparatorText("Typography");
+    ImFont* font = GetFont(FontWeight::Regular);
+    const bool cjk = font != nullptr && font->IsGlyphInFont(0x6392); // 排
+    ImGui::Text("Font: %s, CJK fallback: %s", font != nullptr ? "Geist" : "ImGui default",
+                cjk ? "available" : "missing");
+
+    // 演示用：直接修改全局字体缩放
+    ImGuiStyle& style = ImGui::GetStyle();
+    ImGui::TextUnformatted("UI scale");
+    for (float scale : {1.0f, 1.5f, 2.0f}) {
+        std::array<char, 8> label{};
+        std::snprintf(label.data(), label.size(), "%d%%", static_cast<int>(scale * 100.0f));
+        ImGui::SameLine();
+        if (ImGui::RadioButton(label.data(), style.FontScaleMain == scale))
+            style.FontScaleMain = scale;
+    }
+    static bool showBoxes = false;
+    ImGui::Checkbox("Show line boxes", &showBoxes);
+
+    constexpr const char* kLabel = "Deployments 部署 · Build 2026.11.01 · 99.9%";
+    constexpr const char* kHeading = "Typography 排版";
+    constexpr const char* kCopy = "SoGui 使用 Geist Sans 渲染西文，并用系统字体补齐中文。This paragraph wraps to the "
+                                  "available width; 调整窗口宽度，检查中英文混排、标点（，。！？）与数字 "
+                                  "1234567890 的换行。";
+    struct Sample {
+        TextStyle style;
+        const char* text;
+    };
+    for (const Sample& sample : {Sample{TextStyle::Heading24, kHeading}, Sample{TextStyle::Label14, kLabel},
+                                 Sample{TextStyle::Copy14, kCopy}}) {
+        ImGui::TextDisabled("%s", GetTextStyleName(sample.style));
+        ShowSample(sample.text, sample.style, showBoxes);
+    }
+
+    ImGui::TextDisabled("Mixed with native widgets");
+    ImGui::Button("Native");
+    ImGui::SameLine();
+    ShowSample("Label14 同行", TextStyle::Label14, showBoxes);
+    ImGui::SameLine();
+    ImGui::TextUnformatted("native text");
+
+    if (ImGui::BeginTable("TypographyTable", 2, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg)) {
+        ImGui::TableSetupColumn("Style");
+        ImGui::TableSetupColumn("Usage");
+        ImGui::TableHeadersRow();
+        constexpr std::array rows = {
+            Sample{TextStyle::Label14, "单行标签，不随列宽换行。"},
+            Sample{TextStyle::Copy14, "正文按列宽自动换行，适合说明文字和较长的描述内容。"},
+        };
+        for (const Sample& row : rows) {
+            ImGui::TableNextRow();
+            ImGui::TableSetColumnIndex(0);
+            Text(GetTextStyleName(row.style), TextStyle::Label14);
+            ImGui::TableSetColumnIndex(1);
+            ShowSample(row.text, row.style, showBoxes);
+        }
+        ImGui::EndTable();
+    }
+}
+
 } // namespace
 
 void ShowDemoWindow(bool* open) {
@@ -158,6 +240,7 @@ void ShowDemoWindow(bool* open) {
     }
     ImGui::Text("Dear ImGui %s", IMGUI_VERSION);
     ShowThemeSection();
+    ShowTypographySection();
     ShowPaletteSection();
     ShowSemanticSection();
     ShowPreviewSection();

@@ -53,7 +53,19 @@ TEST_CASE_FIXTURE(ThemeFixture, "color demo exposes palette values and native pr
                                   "Item 1",
                                   "Item 2",
                                   "Item 3",
-                                  "Ready"}) {
+                                  "Ready",
+                                  "Typography",
+                                  "UI scale",
+                                  "100%",
+                                  "150%",
+                                  "200%",
+                                  "Show line boxes",
+                                  "Label14",
+                                  "Copy14",
+                                  "Heading24",
+                                  "Deployments",
+                                  "Mixed with native widgets",
+                                  "native text"}) {
             INFO("Missing preview: ", label);
             CHECK(output.find(label) != std::string::npos);
         }
