@@ -74,7 +74,6 @@ class StyleScope {
         const float content = entry != nullptr ? pixelSize_ : baked_->Ascent - baked_->Descent;
         metrics_.fontSize = pixelSize_ / heightPerEm;
         metrics_.lineHeight = spec_.lineHeight * GetScale();
-        // 字形内容区在行内居中，与 CSS 的 half-leading 一致
         metrics_.baseline = IM_ROUND((metrics_.lineHeight - content) * 0.5f + ascent);
     }
 

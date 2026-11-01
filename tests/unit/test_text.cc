@@ -18,6 +18,7 @@ using SoGui::FontWeight;
 using SoGui::TextStyle;
 
 std::string FontPath(const char* name) { return std::string(SOGUI_TEST_FONT_DIR) + "/" + name; }
+std::string CjkFontPath(const char* name) { return std::string(SOGUI_TEST_CJK_FONT_DIR) + "/" + name; }
 
 struct TextFixture : ThemeFixture {
     std::string regular = FontPath("Geist-Regular.ttf");
@@ -243,24 +244,51 @@ TEST_CASE_FIXTURE(ThemeFixture, "text falls back to the ImGui font when no SoGui
     ImGui::End();
 }
 
-TEST_CASE_FIXTURE(ThemeFixture, "CJK fallbacks share the main font em size") {
-    constexpr const char* kCjk = "/System/Library/Fonts/Hiragino Sans GB.ttc";
-    std::FILE* file = std::fopen(kCjk, "rb");
+TEST_CASE_FIXTURE(ThemeFixture, "bundled CJK subset shares the main font em size and covers common hanzi") {
+    const std::string regular = FontPath("Geist-Regular.ttf");
+    const std::string cjk = CjkFontPath("NotoSansSC-Regular.otf");
+    const std::array fallbacks = {FontSource{cjk.c_str()}};
+    REQUIRE(SoGui::AddFont(FontWeight::Regular, {regular.c_str()}, fallbacks));
+    ImFont* font = SoGui::GetFont(FontWeight::Regular);
+    REQUIRE(font->Sources.Size == 2);
+    BeginFrame();
+    ImGui::Begin("CJK");
+    CHECK(font->IsGlyphInFont(0x4E2D));       // 中：一级字
+    CHECK(font->IsGlyphInFont(0x6E32));       // 渲：二级字
+    CHECK(font->IsGlyphInFont(0xFF0C));       // ，
+    CHECK_FALSE(font->IsGlyphInFont(0x5586)); // 喆：不在 GB2312 中，子集不收录
+    const ImFontGlyph* glyph = font->GetFontBaked(16.0f)->FindGlyphNoFallback(0x4E2D);
+    REQUIRE(glyph != nullptr);
+    CHECK(static_cast<int>(glyph->SourceIdx) == 1);
+    CHECK(static_cast<bool>(glyph->Visible)); // 子集后的 CFF 轮廓能正常光栅化
+    // Noto Sans SC 的全角字宽为 1em
+    const float em = SoGui::GetTextMetrics(TextStyle::Label14).fontSize;
+    CHECK(SoGui::CalcTextSize("中", TextStyle::Label14).x == doctest::Approx(std::ceil(em)));
+    ImGui::End();
+}
+
+TEST_CASE_FIXTURE(ThemeFixture, "system CJK fonts only fill glyphs missing from the bundled subset") {
+    constexpr const char* kSystem = "/System/Library/Fonts/Hiragino Sans GB.ttc";
+    std::FILE* file = std::fopen(kSystem, "rb");
     if (file == nullptr) {
         MESSAGE("Skipped: system CJK font not found");
         return;
     }
     std::fclose(file);
     const std::string regular = FontPath("Geist-Regular.ttf");
-    const std::array fallbacks = {FontSource{kCjk, 0}};
+    const std::string cjk = CjkFontPath("NotoSansSC-Regular.otf");
+    const std::array fallbacks = {FontSource{cjk.c_str()}, FontSource{kSystem, 0}};
     REQUIRE(SoGui::AddFont(FontWeight::Regular, {regular.c_str()}, fallbacks));
+    ImFont* font = SoGui::GetFont(FontWeight::Regular);
+    REQUIRE(font->Sources.Size == 3);
     BeginFrame();
-    ImGui::Begin("CJK");
-    CHECK(SoGui::GetFont(FontWeight::Regular)->IsGlyphInFont(0x4E2D));
-    // 冬青黑体的全角字宽为 1em
-    const float em = SoGui::GetTextMetrics(TextStyle::Label14).fontSize;
-    CHECK(SoGui::CalcTextSize("中", TextStyle::Label14).x == doctest::Approx(std::ceil(em)));
-    ImGui::End();
+    ImFontBaked* baked = font->GetFontBaked(16.0f);
+    const ImFontGlyph* common = baked->FindGlyphNoFallback(0x6E32); // 渲
+    const ImFontGlyph* rare = baked->FindGlyphNoFallback(0x5586);   // 喆
+    REQUIRE(common != nullptr);
+    REQUIRE(rare != nullptr);
+    CHECK(static_cast<int>(common->SourceIdx) == 1);
+    CHECK(static_cast<int>(rare->SourceIdx) == 2);
 }
 
 } // namespace

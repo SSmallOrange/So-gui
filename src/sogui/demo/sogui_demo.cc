@@ -191,9 +191,9 @@ void ShowTypographySection() {
 
     constexpr const char* kLabel = "Deployments 部署 · Build 2026.11.01 · 99.9%";
     constexpr const char* kHeading = "Typography 排版";
-    constexpr const char* kCopy = "SoGui 使用 Geist Sans 渲染西文，并用系统字体补齐中文。This paragraph wraps to the "
-                                  "available width; 调整窗口宽度，检查中英文混排、标点（，。！？）与数字 "
-                                  "1234567890 的换行。";
+    constexpr const char* kCopy = "SoGui 使用 Geist Sans 渲染西文，中文优先使用自带的 Noto Sans SC 常用字子集，"
+                                  "缺字时再用系统字体补齐。This paragraph wraps to the available width; "
+                                  "调整窗口宽度，检查中英文混排、标点（，。！？）与数字 1234567890 的换行。";
     struct Sample {
         TextStyle style;
         const char* text;
