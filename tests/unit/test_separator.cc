@@ -4,8 +4,6 @@
 
 #include <doctest/doctest.h>
 
-#include <vector>
-
 namespace {
 
 using SoGui::Hue;

@@ -4,6 +4,7 @@
 
 #include <doctest/doctest.h>
 
+#include <algorithm>
 #include <string>
 #include <vector>
 
@@ -25,6 +26,7 @@ struct NoteFixture : ThemeFixture {
     explicit NoteFixture() {
         REQUIRE(SoGui::AddFont(SoGui::FontWeight::Regular, {FontPath("Geist-Regular.ttf").c_str()}));
         REQUIRE(SoGui::AddFont(SoGui::FontWeight::SemiBold, {FontPath("Geist-SemiBold.ttf").c_str()}));
+        REQUIRE(SoGui::AddIconFont({SOGUI_TEST_LUCIDE_FONT_DIR "/lucide.ttf"}));
     }
 
     void Frame(const NoteOptions& options, const char* label = "Note", const char* content = "This is a note.") {
@@ -98,3 +100,4 @@ TEST_CASE_FIXTURE(NoteFixture, "Note with empty label renders only the content")
 }
 
 } // namespace
+

@@ -12,7 +12,7 @@ namespace SoGui {
 namespace {
 
 // 官网：after:bg-gradient-to-r after:from-gray-100 after:via-gray-200 after:to-gray-100，
-// 动画 loading-skeleton 1.5s ease-in-out，亮带从右往左扫过。见 doc/components/skeleton.md
+// 动画 loading-skeleton 1.5s ease-in-out，亮带从右往左扫过
 constexpr ColorRef kShimmerFrom = Pal(Hue::Gray, 1);
 constexpr ColorRef kShimmerVia = Pal(Hue::Gray, 2);
 constexpr ColorRef kStaticBg = Pal(Hue::Gray, 2);

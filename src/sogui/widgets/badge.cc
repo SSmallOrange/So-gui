@@ -16,8 +16,7 @@ struct BadgeSpec {
     Themed<ColorRef> bg, fg;
 };
 
-// 颜色来自官网 class（bg-(--ds-xxx) / dark-theme:bg-(--ds-xxx) / text-(--ds-xxx)，2026-11-14 抓取），
-// 完整映射见 doc/components/badge.md
+// 颜色来自官网 class（bg-(--ds-xxx) / dark-theme:bg-(--ds-xxx) / text-(--ds-xxx)，2026-11-14 抓取）
 constexpr ColorRef kWhite = Bg(1); // --ds-contrast-fg / --ds-background-100
 constexpr ColorRef kBlack = Lit(0x000000); // amber 的黑字
 
@@ -60,17 +59,19 @@ constexpr BadgeSpec kVariants[] = {
 static_assert(std::size(kVariants) == static_cast<size_t>(BadgeVariant::COUNT), "Every BadgeVariant needs a spec");
 
 // 尺寸来自官网 class：h-5 px-2 text-[11px]/[20px] / h-6 px-3 text-[12px]/[24px] / h-8 px-3 text-sm
-// （text-sm = 14px/20px），见 doc/components/badge.md
+// （text-sm = 14px/20px）
 struct SizeSpec {
-    float height, paddingX, fontSize, lineHeight;
+    float height, paddingX, fontSize, lineHeight, iconSize;
 };
 
 constexpr SizeSpec kSizes[] = {
-    {20.0f, 8.0f, 11.0f, 20.0f}, // Small
-    {24.0f, 12.0f, 12.0f, 24.0f}, // Medium
-    {32.0f, 12.0f, 14.0f, 20.0f}, // Large
+    {20.0f, 8.0f, 11.0f, 20.0f, 12.0f}, // Small：图标 size-3
+    {24.0f, 12.0f, 12.0f, 24.0f, 14.0f}, // Medium：图标 size-3.5
+    {32.0f, 12.0f, 14.0f, 20.0f, 16.0f}, // Large：图标 size-4
 };
 static_assert(std::size(kSizes) == static_cast<size_t>(BadgeSize::COUNT), "Every BadgeSize needs a spec");
+
+constexpr float kIconGap = 5.0f; // 官网 gap-1.25
 
 constexpr FontWeight kBadgeWeight = FontWeight::Medium; // font-medium
 
@@ -85,7 +86,7 @@ void Badge(std::string_view label, const BadgeOptions& options) {
     const BadgeSpec& variant = kVariants[static_cast<int>(options.variant)];
     const SizeSpec& spec = kSizes[static_cast<int>(options.size)];
 
-    // 文字：Medium 字重、任意字号（badge 字号不在 TextStyle 表里，见规格文档）
+    // 文字：Medium 字重、任意字号（badge 字号不在 TextStyle 表里）
     const FontEntry* entry = FindFont(kBadgeWeight);
     const float heightPerEm = entry != nullptr ? entry->heightPerEm : 1.0f;
     const auto PushBadgeFont = [&] { ImGui::PushFont(entry != nullptr ? entry->font : nullptr, spec.fontSize * heightPerEm); };
@@ -108,7 +109,8 @@ void Badge(std::string_view label, const BadgeOptions& options) {
     const float textTop = (height - lineHeight) * 0.5f;
     const float textBaseline = ImMax(0.0f, textTop + baselineInBox - nativeAscent); // 与原生文字基线对齐
 
-    const ImVec2 size = SnapToPixel(ImVec2(paddingX * 2.0f + textWidth, height));
+    const float iconSlot = options.icon == IconId::None ? 0.0f : Px(spec.iconSize) + Px(kIconGap);
+    const ImVec2 size = SnapToPixel(ImVec2(paddingX * 2.0f + iconSlot + textWidth, height));
     ImVec2 pos = window->DC.CursorPos;
     pos.y += ImMax(0.0f, window->DC.CurrLineTextBaseOffset - textBaseline);
     pos = SnapToPixel(pos);
@@ -117,14 +119,20 @@ void Badge(std::string_view label, const BadgeOptions& options) {
     if (!ImGui::ItemAdd(bb, 0))
         return;
 
-    // 绘制：胶囊背景 + 居中文字
-    window->DrawList->AddRectFilled(bb.Min, bb.Max,
-                                    ImGui::ColorConvertFloat4ToU32(ResolveColor(variant.bg.Get())), height * 0.5f);
+    // 绘制：胶囊背景 + 图标 + 文字
+    ImDrawList* drawList = window->DrawList;
+    drawList->AddRectFilled(bb.Min, bb.Max, ImGui::ColorConvertFloat4ToU32(ResolveColor(variant.bg.Get())),
+                            height * 0.5f);
+    const ImU32 fg = ImGui::ColorConvertFloat4ToU32(ResolveColor(variant.fg.Get()));
+    const float contentX = bb.Min.x + paddingX;
+    if (options.icon != IconId::None)
+        IconDraw(drawList, ImVec2(contentX + Px(spec.iconSize) * 0.5f, (bb.Min.y + bb.Max.y) * 0.5f), options.icon,
+                 spec.iconSize, fg);
     if (!label.empty()) {
-        const ImU32 fg = ImGui::ColorConvertFloat4ToU32(ResolveColor(variant.fg.Get()));
-        const ImVec2 textPos = SnapToPixel(ImVec2(bb.Min.x + paddingX, bb.Min.y + textTop + baselineInBox - nativeAscent));
+        const ImVec2 textPos =
+            SnapToPixel(ImVec2(contentX + iconSlot, bb.Min.y + textTop + baselineInBox - nativeAscent));
         PushBadgeFont();
-        window->DrawList->AddText(textPos, fg, label.data(), label.data() + label.size());
+        drawList->AddText(textPos, fg, label.data(), label.data() + label.size());
         ImGui::PopFont();
         if (GImGui->LogEnabled)
             ImGui::LogRenderedText(&textPos, label.data(), label.data() + label.size());

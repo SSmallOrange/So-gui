@@ -6,10 +6,10 @@
 
 ### 1.1 结构
 
-官网 Note 由三部分组成：图标（变体默认图标）、可选 `label`（1~2 词 Title Case 前缀）、`content`（一句正文）、可选 `action`（内联 CTA）。So-gui 实现 label + content；图标（Lucide）与 action 在后续里程碑实现。
+官网 Note 由三部分组成：图标（变体默认图标）、可选 `label`（1~2 词 Title Case 前缀）、`content`（一句正文）、可选 `action`（内联 CTA）。So-gui 实现图标 + label + content；action 在后续里程碑实现。
 
 - **label**：官网实测 14px / 600 字重（`Region Change:`，2026-11-14 抓取），对应 `TextStyle::Heading14`。Small 尺寸下官网未提供 label 样例，沿用同一样式。
-- **图标**：官网为 16×16 viewBox 单形状 SVG，颜色随 type 主色（default `gray`、success 蓝 `#52a8ff`、error 红 `#ff6166`、warning 琥珀 `#f2a20d`、secondary 白 60%、violet 紫 `#bf7af0`、cyan 青 `#0ac7b4`），显示尺寸 14px。原始形状数据见 `doc/specs/note.json`。
+- **图标**：官网为 16×16 viewBox 单形状 SVG，显示尺寸 14px，颜色随 type 主色。So-gui 用 Lucide 对应图标（ISC 许可，形状为 Lucide 版本）：Default/Secondary/Violet/Cyan → `Info`、Success → `CircleCheck`、Error → `CircleAlert`、Warning → `TriangleAlert`。原始形状数据见 `doc/specs/note.json`。
 
 ### 1.2 尺寸（2 档）
 

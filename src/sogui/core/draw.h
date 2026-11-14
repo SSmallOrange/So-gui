@@ -18,7 +18,6 @@ void RectRing(ImDrawList* drawList, ImVec2 min, ImVec2 max, ImU32 color, float r
 void FocusRing(ImDrawList* drawList, ImVec2 min, ImVec2 max, float rounding);
 // Geist 圆形 Spinner。diameter 为 1x 设计值，12 / 16 / 20 / 24 / 32 / 40 / 56 七档用 Geist 原值（条数、条长、
 // 条宽随直径变化），其他直径按 20 那档等比缩放。内部调用 RequestRedraw()，保证转动时持续出帧。
-// 规格见 doc/components/spinner.md
 void SpinnerDraw(ImDrawList* drawList, ImVec2 center, float diameter, ImU32 color);
 
 } // namespace SoGui

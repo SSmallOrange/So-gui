@@ -20,7 +20,7 @@ struct VariantSpec {
     StateColors normal, hover, active, disabled;
 };
 
-// 色值来自 Geist Button 的 CSS（2026-11-01 抓取），见 doc/components/button.md
+// 色值来自 Geist Button 的 CSS（2026-11-01 抓取）
 constexpr StateColors kFilledDisabled = {Sem(Col::Fill), Sem(Col::TextDisabled), Sem(Col::Border)};
 constexpr StateColors kGhostDisabled = {Transparent(), Sem(Col::TextDisabled), Transparent()};
 

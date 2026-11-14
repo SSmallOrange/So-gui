@@ -27,8 +27,7 @@ struct SpinnerSpec {
     float period;      // 透明度循环周期（秒），短条 animation-delay 的跨度
 };
 
-// 1x 设计值，来自 Geist Spinner 的 size-3 / size-4 / size-5 / size-6 / size-8 / size-10 / size-14，
-// 2026-11-14 抓取，见 doc/components/spinner.md
+// 1x 设计值，来自 Geist Spinner 的 size-3 / size-4 / size-5 / size-6 / size-8 / size-10 / size-14（2026-11-14 抓取）
 constexpr SpinnerSpec kSpinners[] = {
     {12.0f, 3.0f, 1.5f, 4.38f, 8, 1.0f},
     {16.0f, 4.0f, 1.5f, 5.84f, 10, 1.0f},

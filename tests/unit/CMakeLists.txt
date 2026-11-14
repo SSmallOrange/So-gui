@@ -11,11 +11,13 @@ add_executable(sogui_unit_tests
     test_spinner.cc
     test_badge.cc
     test_note.cc
-    test_skeleton.cc)
+    test_skeleton.cc
+    test_icon.cc)
 target_link_libraries(sogui_unit_tests PRIVATE sogui::sogui doctest::doctest)
 target_compile_definitions(sogui_unit_tests PRIVATE
     SOGUI_TEST_FONT_DIR="${PROJECT_SOURCE_DIR}/assets/fonts/geist"
-    SOGUI_TEST_CJK_FONT_DIR="${PROJECT_SOURCE_DIR}/assets/fonts/noto-sans-sc")
+    SOGUI_TEST_CJK_FONT_DIR="${PROJECT_SOURCE_DIR}/assets/fonts/noto-sans-sc"
+    SOGUI_TEST_LUCIDE_FONT_DIR="${PROJECT_SOURCE_DIR}/assets/fonts/lucide")
 sogui_set_warnings(sogui_unit_tests)
 
 include("${PROJECT_SOURCE_DIR}/third_party/doctest/scripts/cmake/doctest.cmake")

@@ -49,7 +49,9 @@
 
 官网 Badge 无 hover / active 颜色变化（73 个样例实测无变化，2026-11-14 抓取），So-gui 不实现状态过渡。
 
-`icon`（图标 + 文本组合）在 Lucide 图标体系接入后的里程碑实现。
+### 1.4 图标
+
+官网支持 icon + text 组合（禁止双图标与嵌套）。So-gui 的 `BadgeOptions.icon` 传 `IconId` 显示图标，`None`（默认）不显示；图标尺寸随 badge 尺寸（12 / 14 / 16），颜色与文字一致，间距 5px（官网 `gap-1.25`；官网图标另有 `-ml-1` 的 4px 左移微调，So-gui 未做，见 demo 对比）。
 
 ## 2. API
 

@@ -8,6 +8,7 @@ static_assert(IMGUI_VERSION_NUM >= 19200, "So-gui requires Dear ImGui 1.92 or ne
 #include <sogui/core/context.h>
 #include <sogui/core/draw.h>
 #include <sogui/core/font.h>
+#include <sogui/core/icon.h>
 #include <sogui/core/metrics.h>
 #include <sogui/core/scale.h>
 #include <sogui/core/text.h>

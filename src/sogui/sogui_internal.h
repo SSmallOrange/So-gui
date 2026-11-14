@@ -2,6 +2,7 @@
 
 // 扩展组件用的内部接口，不保证 ABI 稳定。
 
+#include <sogui/core/icon.h>
 #include <sogui/sogui.h>
 
 #include <imgui.h>
@@ -77,10 +78,15 @@ struct FontEntry {
 
 struct FontState {
     FontEntry entries[kFontWeightCount];
+    FontEntry iconEntry; // Lucide 图标字体，SoGui::Icon 使用
 };
 
 // 字体不在当前 ImGui 图集中时返回 nullptr
 const FontEntry* FindFont(FontWeight weight);
+const FontEntry* FindIconFont();
+
+// 在 center 画一个图标（不产生 ImGui item）。size 为 1x 设计值
+void IconDraw(ImDrawList* drawList, ImVec2 center, IconId id, float size, ImU32 color);
 
 // 在 pos（行盒左上角）画一行文字，不产生 ImGui item
 void RenderText(ImDrawList* drawList, ImVec2 pos, std::string_view text, TextStyle style, ImU32 color);

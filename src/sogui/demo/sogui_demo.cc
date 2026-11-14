@@ -338,6 +338,23 @@ void ShowSeparatorSection() {
     ImGui::TextUnformatted("Below");
 }
 
+void ShowIconSection() {
+    ImGui::SeparatorText("Icon");
+    constexpr std::array icons = {IconId::Info, IconId::CircleCheck, IconId::CircleAlert, IconId::TriangleAlert,
+                                  IconId::Search, IconId::Copy, IconId::ChevronDown, IconId::X};
+    constexpr std::array sizes = {12.0f, 14.0f, 16.0f, 20.0f};
+    for (const float size : sizes) {
+        for (const IconId icon : icons) {
+            Icon(icon, size);
+            ImGui::SameLine();
+        }
+        ImGui::NewLine();
+    }
+    Icon(IconId::Check, 20.0f, Col::Accent);
+    ImGui::SameLine();
+    Icon(IconId::X, 20.0f, Col::TextDisabled);
+}
+
 void ShowSpinnerSection() {
     ImGui::SeparatorText("Spinner");
     ImGui::Text("Frame %d", ImGui::GetFrameCount());
@@ -391,6 +408,13 @@ void ShowBadgeSection() {
     Badge("已删除", {.variant = BadgeVariant::Red});
     ImGui::SameLine();
     Badge("测试中", {.variant = BadgeVariant::Amber});
+
+    ImGui::TextUnformatted("Icon");
+    Badge("Deploy", {.variant = BadgeVariant::Blue, .icon = IconId::Rocket});
+    ImGui::SameLine();
+    Badge("Alert", {.variant = BadgeVariant::Amber, .icon = IconId::TriangleAlert});
+    ImGui::SameLine();
+    Badge("Check", {.variant = BadgeVariant::Green, .icon = IconId::CircleCheck});
 }
 
 void ShowNoteSection() {
@@ -430,6 +454,7 @@ void ShowDemoWindow(bool* open) {
     ShowSkeletonSection();
     ShowSpinnerSection();
     ShowSeparatorSection();
+    ShowIconSection();
     ShowTypographySection();
     ShowPaletteSection();
     ShowSemanticSection();

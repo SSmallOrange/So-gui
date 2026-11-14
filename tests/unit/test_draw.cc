@@ -167,7 +167,7 @@ TEST_CASE("SpinnerDraw bar opacity falls from 1 to 0.15 and is staggered by one 
         const int first = drawList->VtxBuffer.Size;
         SoGui::SpinnerDraw(drawList, ImVec2(200.0f, 150.0f), 20.0f, IM_COL32(200, 200, 200, 255));
 
-        // 20 档：12 根、周期 1.2s（见 doc/components/spinner.md）
+        // 20 档：12 根、周期 1.2s
         const double time = std::fmod(ImGui::GetTime(), 1.2) / 1.2;
         std::multiset<int> actual;
         for (int i = first; i < drawList->VtxBuffer.Size; ++i) {

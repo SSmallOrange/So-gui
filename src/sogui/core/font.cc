@@ -146,6 +146,13 @@ const FontEntry* FindFont(FontWeight weight) {
     return &entry;
 }
 
+const FontEntry* FindIconFont() {
+    const FontEntry& entry = CurrentContext().fonts.iconEntry;
+    if (entry.font == nullptr || !ImGui::GetIO().Fonts->Fonts.contains(entry.font))
+        return nullptr;
+    return &entry;
+}
+
 // font.h
 bool AddFont(FontWeight weight, const FontSource& source, std::span<const FontSource> fallbacks) {
     const int index = IndexOf(weight);
@@ -173,6 +180,22 @@ bool AddFont(FontWeight weight, const FontSource& source, std::span<const FontSo
     }
 
     ctx.fonts.entries[index] = {font, file.metrics.heightPerEm, file.metrics.ascentRatio};
+    return true;
+}
+
+bool AddIconFont(const FontSource& source) {
+    Context& ctx = CurrentContext();
+    IM_ASSERT(!ImGui::GetIO().Fonts->Locked && "SoGui::AddIconFont() must be called outside of a frame");
+
+    FontFile file;
+    if (!LoadFontFile(source, file))
+        return false;
+    ImFontConfig config;
+    config.SizePixels = kDefaultEmSize * file.metrics.heightPerEm;
+    ImFont* font = AddFontData(file, source, config);
+    if (font == nullptr)
+        return false;
+    ctx.fonts.iconEntry = {font, file.metrics.heightPerEm, file.metrics.ascentRatio};
     return true;
 }
 

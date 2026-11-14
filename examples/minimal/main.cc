@@ -12,6 +12,7 @@ using SoGui::FontWeight;
 constexpr const char* kGeistRegular = SOGUI_FONT_DIR "/geist/Geist-Regular.ttf";
 constexpr const char* kGeistMedium = SOGUI_FONT_DIR "/geist/Geist-Medium.ttf";
 constexpr const char* kGeistSemiBold = SOGUI_FONT_DIR "/geist/Geist-SemiBold.ttf";
+constexpr const char* kLucide = SOGUI_FONT_DIR "/lucide/lucide.ttf";
 
 // 中文先用自带的 Noto Sans SC 常用字子集，缺字再由系统中文字体补；缺失的字体文件会被跳过
 constexpr FontSource kNotoRegular{SOGUI_FONT_DIR "/noto-sans-sc/NotoSansSC-Regular.otf"};
@@ -37,6 +38,7 @@ void LoadFonts() {
         std::fprintf(stderr, "Failed to load font: %s\n", kGeistRegular);
     SoGui::AddFont(FontWeight::Medium, {kGeistMedium}, kCjkBold);
     SoGui::AddFont(FontWeight::SemiBold, {kGeistSemiBold}, kCjkBold);
+    SoGui::AddIconFont({kLucide});
     // 原生 ImGui 控件也使用 Geist
     if (ImFont* font = SoGui::GetFont(FontWeight::Regular))
         ImGui::GetIO().FontDefault = font;

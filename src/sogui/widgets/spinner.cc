@@ -11,8 +11,7 @@
 namespace SoGui {
 namespace {
 
-// 颜色来自官网 class：text-gray-700 / text-red-700 / text-green-700 / text-blue-700
-//（gray-700 = Col::TextDisabled），见 doc/components/spinner.md
+// 颜色来自官网 class：text-gray-700 / text-red-700 / text-green-700 / text-blue-700（gray-700 = Col::TextDisabled）
 constexpr ColorRef kColors[] = {
     Sem(Col::TextDisabled), // Default
     Pal(Hue::Red, 7),

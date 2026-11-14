@@ -9,7 +9,7 @@
 namespace SoGui {
 namespace {
 
-// 官网 class：bg-gray-200 h-px w-full（亮暗都是 gray-200 色阶，见 doc/components/separator.md）
+// 官网 class：bg-gray-200 h-px w-full（亮暗都是 gray-200 色阶）
 constexpr ColorRef kSeparatorColor = Pal(Hue::Gray, 2);
 constexpr float kSeparatorThickness = 1.0f; // h-px
 

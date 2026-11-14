@@ -4,6 +4,7 @@
 
 #include <doctest/doctest.h>
 
+#include <algorithm>
 #include <string>
 #include <vector>
 
@@ -24,6 +25,7 @@ struct BadgeFixture : ThemeFixture {
 
     explicit BadgeFixture() {
         REQUIRE(SoGui::AddFont(SoGui::FontWeight::Medium, {FontPath("Geist-Medium.ttf").c_str()}));
+        REQUIRE(SoGui::AddIconFont({SOGUI_TEST_LUCIDE_FONT_DIR "/lucide.ttf"}));
     }
 
     void Frame(const BadgeOptions& options, const char* label = "Ready") {
@@ -87,3 +89,4 @@ TEST_CASE_FIXTURE(BadgeFixture, "Badge subtle variants draw no background") {
 }
 
 } // namespace
+
