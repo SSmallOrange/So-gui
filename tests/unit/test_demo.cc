@@ -17,12 +17,12 @@ TEST_CASE_FIXTURE(ThemeFixture, "color demo exposes palette values and native pr
     platform.Platform_GetClipboardTextFn = [](ImGuiContext*) {
         return static_cast<std::string*>(ImGui::GetPlatformIO().Platform_ClipboardUserData)->c_str();
     };
-    ImGui::GetIO().DisplaySize = ImVec2(1280.0f, 2400.0f);
+    ImGui::GetIO().DisplaySize = ImVec2(1280.0f, 4400.0f);
 
     BeginFrame();
     SoGui::ShowDemoWindow();
     EndFrame();
-    ImGui::SetWindowSize("So-gui demo", ImVec2(1100.0f, 2300.0f));
+    ImGui::SetWindowSize("So-gui demo", ImVec2(1100.0f, 4300.0f));
     ImGui::SetWindowPos("So-gui demo", ImVec2(0.0f, 0.0f));
 
     for (SoGui::ThemeId theme : {SoGui::ThemeId::Light, SoGui::ThemeId::Dark}) {
@@ -65,7 +65,29 @@ TEST_CASE_FIXTURE(ThemeFixture, "color demo exposes palette values and native pr
                                   "Heading24",
                                   "Deployments",
                                   "Mixed with native widgets",
-                                  "native text"}) {
+                                  "native text",
+                                  "Frame",
+                                  "Size",
+                                  "Primary",
+                                  "Secondary",
+                                  "Tertiary",
+                                  "Error",
+                                  "Warning",
+                                  "Small",
+                                  "Medium",
+                                  "Large",
+                                  "Upload",
+                                  "Disabled",
+                                  "Loading",
+                                  "Loading...",
+                                  "中文",
+                                  "部署项目",
+                                  "删除项目",
+                                  "保存",
+                                  "Full width",
+                                  "Click me",
+                                  "已点击",
+                                  "混排"}) {
             INFO("Missing preview: ", label);
             CHECK(output.find(label) != std::string::npos);
         }
@@ -79,9 +101,21 @@ TEST_CASE_FIXTURE(ThemeFixture, "color demo exposes palette values and native pr
             CHECK(output.find("#000000CC") != std::string::npos);
         }
         CHECK(SoGui::GetTheme() == theme);
-        CHECK_FALSE(SoGui::ConsumeRedrawRequest());
         CHECK(ImGui::GetStyle().Alpha == 1.0f);
         EndFrame();
+
+        // 主题切换后按钮颜色有 150ms 过渡，过渡期间的请求逐帧清掉
+        for (int i = 0; i < 12; ++i) {
+            BeginFrame();
+            SoGui::ShowDemoWindow();
+            EndFrame();
+            SoGui::ConsumeRedrawRequest();
+        }
+        // 过渡结束后再跑一帧，不应产生新的重绘请求
+        BeginFrame();
+        SoGui::ShowDemoWindow();
+        EndFrame();
+        CHECK_FALSE(SoGui::ConsumeRedrawRequest());
     }
     platform.Platform_ClipboardUserData = nullptr;
     platform.Platform_SetClipboardTextFn = nullptr;
@@ -89,14 +123,14 @@ TEST_CASE_FIXTURE(ThemeFixture, "color demo exposes palette values and native pr
 }
 
 TEST_CASE_FIXTURE(ThemeFixture, "color demo content fits a tall window without logging") {
-    ImGui::GetIO().DisplaySize = ImVec2(1280.0f, 2400.0f);
+    ImGui::GetIO().DisplaySize = ImVec2(1280.0f, 4400.0f);
     BeginFrame();
     SoGui::ShowDemoWindow();
     EndFrame();
     ImGui::SetWindowPos("So-gui demo", ImVec2(0.0f, 0.0f));
 
     float previousHeight = 0.0f;
-    for (float height : {1800.0f, 2300.0f}) {
+    for (float height : {4000.0f, 4300.0f}) {
         ImGui::SetWindowSize("So-gui demo", ImVec2(1100.0f, height));
         for (int frame = 0; frame < 3; ++frame) {
             BeginFrame();

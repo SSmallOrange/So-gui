@@ -1,5 +1,7 @@
 #include "test_context.h"
 
+#include <sogui/sogui_internal.h>
+
 #include <doctest/doctest.h>
 
 #include <cmath>
@@ -228,6 +230,43 @@ TEST_CASE_FIXTURE(ThemeFixture, "theme contexts retain independent colors overri
     SoGui::PopColor();
     SoGui::DestroyContext(other);
     CHECK(SoGui::GetCurrentContext() == soguiContext);
+}
+
+TEST_CASE_FIXTURE(ThemeFixture, "ColorRef resolves palette, background, literal and transparent sources") {
+    using SoGui::Bg;
+    using SoGui::Lit;
+    using SoGui::Pal;
+    using SoGui::ResolveColor;
+    using SoGui::Sem;
+    using SoGui::Transparent;
+
+    // 色板：red-800 等于 GetPaletteColor(Hue::Red, 8)
+    CheckColor(ResolveColor(Pal(Hue::Red, 8)), SoGui::GetPaletteColor(Hue::Red, 8));
+    // 背景
+    CheckColor(ResolveColor(Bg(1)), ImVec4(1.0f, 1.0f, 1.0f, 1.0f));
+    // 写死的颜色，0x383838
+    CheckColor(ResolveColor(Lit(0x383838)), ImVec4(56.0f / 255.0f, 56.0f / 255.0f, 56.0f / 255.0f, 1.0f));
+    // 透明
+    CheckColor(ResolveColor(Transparent()), ImVec4(0.0f, 0.0f, 0.0f, 0.0f));
+    // 语义色受 PushColor 影响
+    SoGui::PushColor(Col::Fill, ImVec4(1.0f, 0.0f, 0.0f, 1.0f));
+    CheckColor(ResolveColor(Sem(Col::Fill)), ImVec4(1.0f, 0.0f, 0.0f, 1.0f));
+    SoGui::PopColor();
+}
+
+TEST_CASE_FIXTURE(ThemeFixture, "Themed returns the value for the active theme") {
+    using SoGui::Lit;
+    using SoGui::ResolveColor;
+    using SoGui::Themed;
+
+    const Themed<SoGui::ColorRef> themed = {Lit(0x383838), Lit(0xCCCCCC)};
+    CheckColor(ResolveColor(themed.Get()), ImVec4(56.0f / 255.0f, 56.0f / 255.0f, 56.0f / 255.0f, 1.0f));
+    SoGui::SetTheme(ThemeId::Dark);
+    BeginFrame();
+    CheckColor(ResolveColor(themed.Get()), ImVec4(204.0f / 255.0f, 204.0f / 255.0f, 204.0f / 255.0f, 1.0f));
+
+    const Themed<float> both(5.0f);
+    CHECK(both.Get() == doctest::Approx(5.0f));
 }
 
 } // namespace

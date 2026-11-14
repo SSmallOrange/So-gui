@@ -13,16 +13,48 @@ namespace {
 struct TextStyleSpec {
     const char* name;
     FontWeight weight;
-    float size;       // CSS px
-    float lineHeight; // CSS px
-    bool wrap;
+    float size;          // CSS px
+    float lineHeight;    // CSS px
+    float letterSpacing; // CSS px，暂未使用
+    bool mono;           // 暂未使用：Geist Mono 接入前回退到 Sans
+    bool wrap;           // Heading、Copy 为 true；Label、Button 为 false
 };
 
-// 数值取自 Geist Typography 的计算样式；Heading24 的 -0.96px 字间距暂未实现
+constexpr FontWeight kRegular = FontWeight::Regular;
+constexpr FontWeight kMedium = FontWeight::Medium;
+constexpr FontWeight kSemiBold = FontWeight::SemiBold;
+
+// 数值取自 Geist Typography 的计算样式，顺序与 TextStyle 一致
 constexpr TextStyleSpec kTextStyles[] = {
-    {"Label14", FontWeight::Regular, 14.0f, 20.0f, false},
-    {"Copy14", FontWeight::Regular, 14.0f, 20.0f, true},
-    {"Heading24", FontWeight::SemiBold, 24.0f, 32.0f, true},
+    {"Heading72", kSemiBold, 72.0f, 72.0f, -4.32f, false, true},
+    {"Heading64", kSemiBold, 64.0f, 64.0f, -3.84f, false, true},
+    {"Heading56", kSemiBold, 56.0f, 56.0f, -3.36f, false, true},
+    {"Heading48", kSemiBold, 48.0f, 56.0f, -2.88f, false, true},
+    {"Heading40", kSemiBold, 40.0f, 48.0f, -2.4f, false, true},
+    {"Heading32", kSemiBold, 32.0f, 40.0f, -1.28f, false, true},
+    {"Heading24", kSemiBold, 24.0f, 32.0f, -0.96f, false, true},
+    {"Heading20", kSemiBold, 20.0f, 26.0f, -0.4f, false, true},
+    {"Heading16", kSemiBold, 16.0f, 24.0f, -0.32f, false, true},
+    {"Heading14", kSemiBold, 14.0f, 20.0f, -0.28f, false, true},
+    {"Button16", kMedium, 16.0f, 20.0f, 0.0f, false, false},
+    {"Button14", kMedium, 14.0f, 20.0f, 0.0f, false, false},
+    {"Button12", kMedium, 12.0f, 16.0f, 0.0f, false, false},
+    {"Label20", kRegular, 20.0f, 32.0f, 0.0f, false, false},
+    {"Label18", kRegular, 18.0f, 20.0f, 0.0f, false, false},
+    {"Label16", kRegular, 16.0f, 20.0f, 0.0f, false, false},
+    {"Label14", kRegular, 14.0f, 20.0f, 0.0f, false, false},
+    {"Label14Mono", kRegular, 14.0f, 20.0f, 0.0f, true, false},
+    {"Label13", kRegular, 13.0f, 16.0f, 0.0f, false, false},
+    {"Label13Mono", kRegular, 13.0f, 20.0f, 0.0f, true, false},
+    {"Label12", kRegular, 12.0f, 16.0f, 0.0f, false, false},
+    {"Label12Mono", kRegular, 12.0f, 16.0f, 0.0f, true, false},
+    {"Copy24", kRegular, 24.0f, 36.0f, 0.0f, false, true},
+    {"Copy20", kRegular, 20.0f, 36.0f, 0.0f, false, true},
+    {"Copy18", kRegular, 18.0f, 28.0f, 0.0f, false, true},
+    {"Copy16", kRegular, 16.0f, 24.0f, 0.0f, false, true},
+    {"Copy14", kRegular, 14.0f, 20.0f, 0.0f, false, true},
+    {"Copy13", kRegular, 13.0f, 18.0f, 0.0f, false, true},
+    {"Copy13Mono", kRegular, 13.0f, 18.0f, 0.0f, true, true},
 };
 
 static_assert(std::size(kTextStyles) == static_cast<size_t>(TextStyle::COUNT), "Every TextStyle needs a spec");
@@ -204,6 +236,17 @@ void Text(std::string_view text, TextStyle style, const TextOptions& options) {
 ImVec2 CalcTextSize(std::string_view text, TextStyle style, float wrapWidth) {
     const StyleScope scope(style);
     return scope.Measure(text, wrapWidth);
+}
+
+// sogui_internal.h
+void RenderText(ImDrawList* drawList, ImVec2 pos, std::string_view text, TextStyle style, ImU32 color) {
+    if (text.empty())
+        return;
+    const StyleScope scope(style);
+    const ImVec2 linePos(pos.x, pos.y + scope.DrawOffset());
+    drawList->AddText(scope.Font(), scope.PixelSize(), linePos, color, text.data(), text.data() + text.size());
+    if (GImGui->LogEnabled)
+        ImGui::LogRenderedText(&linePos, text.data(), text.data() + text.size());
 }
 
 TextMetrics GetTextMetrics(TextStyle style) {

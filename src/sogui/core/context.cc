@@ -40,6 +40,7 @@ void EndFrame() {
     IM_ASSERT(ctx != nullptr && "SoGui::EndFrame() called without SoGui::NewFrame()");
     IM_ASSERT(ImGui::GetCurrentContext() != nullptr && "ImGui context missing in SoGui::EndFrame()");
     ThemeEndFrame(ctx->theme);
+    AnimEndFrame(ctx->anims, ctx->frameCount);
 }
 
 void RequestRedraw() {

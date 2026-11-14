@@ -20,7 +20,7 @@ struct Palette {
 
 const Palette& PaletteFor(ThemeId theme) { return theme == ThemeId::Dark ? kPaletteDark : kPaletteLight; }
 
-struct ColorRef {
+struct PaletteRef {
     enum class Source { Background, Scale };
     Source source;
     Hue    hue;
@@ -28,22 +28,22 @@ struct ColorRef {
     float  alpha;
 };
 
-constexpr ColorRef Background(int level, float alpha = 1.0f) {
-    return {ColorRef::Source::Background, Hue::Gray, level, alpha};
+constexpr PaletteRef Background(int level, float alpha = 1.0f) {
+    return {PaletteRef::Source::Background, Hue::Gray, level, alpha};
 }
 
-constexpr ColorRef Scale(Hue hue, int level, float alpha = 1.0f) {
-    return {ColorRef::Source::Scale, hue, level, alpha};
+constexpr PaletteRef Scale(Hue hue, int level, float alpha = 1.0f) {
+    return {PaletteRef::Source::Scale, hue, level, alpha};
 }
 
 struct SemanticColor {
     Col         col;
     const char* name;
-    ColorRef    light;
-    ColorRef    dark;
+    PaletteRef  light;
+    PaletteRef  dark;
 };
 
-constexpr SemanticColor Same(Col col, const char* name, ColorRef ref) { return {col, name, ref, ref}; }
+constexpr SemanticColor Same(Col col, const char* name, PaletteRef ref) { return {col, name, ref, ref}; }
 
 constexpr float kBackdropOpacity = 0.8f;
 
@@ -67,8 +67,8 @@ constexpr SemanticColor kSemanticColors[] = {
     {Col::Backdrop, "Backdrop", Scale(Hue::Gray, 1, kBackdropOpacity), Background(2, kBackdropOpacity)},
 };
 
-constexpr bool IsValid(ColorRef ref) {
-    const bool levelValid = ref.source == ColorRef::Source::Background ? ref.level >= 1 && ref.level <= kBackgroundCount
+constexpr bool IsValid(PaletteRef ref) {
+    const bool levelValid = ref.source == PaletteRef::Source::Background ? ref.level >= 1 && ref.level <= kBackgroundCount
                                                                        : ref.level >= 1 && ref.level <= kLevelCount;
     const bool hueValid = static_cast<int>(ref.hue) >= 0 && static_cast<int>(ref.hue) < kHueCount;
     return levelValid && hueValid && ref.alpha >= 0.0f && ref.alpha <= 1.0f;
@@ -181,8 +181,8 @@ constexpr int IndexOf(Col col) { return static_cast<int>(col); }
 
 bool IsValidCol(Col col) { return IndexOf(col) >= 0 && IndexOf(col) < kColCount; }
 
-ImVec4 Resolve(const Palette& palette, ColorRef ref) {
-    ImVec4 color = ref.source == ColorRef::Source::Background ? palette.background[ref.level - 1]
+ImVec4 Resolve(const Palette& palette, PaletteRef ref) {
+    ImVec4 color = ref.source == PaletteRef::Source::Background ? palette.background[ref.level - 1]
                                                               : palette.scales[static_cast<int>(ref.hue)][ref.level - 1];
     color.w *= ref.alpha;
     return color;
@@ -218,6 +218,27 @@ ThemeState& CurrentTheme() {
 } // namespace
 
 // sogui_internal.h
+ThemeId GetActiveTheme() { return CurrentTheme().active; }
+
+ImVec4 ResolveColor(const ColorRef& ref) {
+    switch (ref.kind) {
+    case ColorRef::Kind::Semantic:
+        return GetColor(ref.col);
+    case ColorRef::Kind::Palette:
+        return GetPaletteColor(ref.hue, ref.level);
+    case ColorRef::Kind::Background:
+        IM_ASSERT(ref.level >= 1 && ref.level <= kBackgroundCount && "Background level must be in [1, 2]");
+        return PaletteFor(CurrentTheme().active).background[ref.level - 1];
+    case ColorRef::Kind::Literal:
+        return ImVec4(static_cast<float>((ref.rgb >> 16) & 0xFFU) / 255.0f,
+                      static_cast<float>((ref.rgb >> 8) & 0xFFU) / 255.0f,
+                      static_cast<float>(ref.rgb & 0xFFU) / 255.0f, 1.0f);
+    case ColorRef::Kind::Transparent:
+        break;
+    }
+    return ImVec4(0.0f, 0.0f, 0.0f, 0.0f);
+}
+
 void ThemeInitialize(ThemeState& state, const ContextConfig& config) {
     state.active = config.theme;
     state.requested = config.theme;

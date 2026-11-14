@@ -2,7 +2,11 @@ add_executable(sogui_unit_tests
     test_main.cc
     test_theme.cc
     test_demo.cc
-    test_text.cc)
+    test_text.cc
+    test_draw.cc
+    test_anim.cc
+    test_interaction.cc
+    test_button.cc)
 target_link_libraries(sogui_unit_tests PRIVATE sogui::sogui doctest::doctest)
 target_compile_definitions(sogui_unit_tests PRIVATE
     SOGUI_TEST_FONT_DIR="${PROJECT_SOURCE_DIR}/assets/fonts/geist"

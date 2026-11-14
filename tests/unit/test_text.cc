@@ -87,6 +87,23 @@ TEST_CASE_FIXTURE(ThemeFixture, "font registration merges available fallbacks an
     CHECK(SoGui::GetFont(FontWeight::Regular)->Sources.Size == 2);
 }
 
+TEST_CASE_FIXTURE(TextFixture, "every text style reports the line height of the Geist table") {
+    constexpr std::array<float, static_cast<std::size_t>(TextStyle::COUNT)> kLineHeights = {
+        72, 64, 56, 56, 48, 40, 32, 26, 24, 20, // Heading
+        20, 20, 16,                             // Button
+        32, 20, 20, 20, 20, 16, 20, 16, 16,     // Label
+        36, 36, 28, 24, 20, 18, 18,             // Copy
+    };
+    BeginWindow();
+    for (int i = 0; i < static_cast<int>(TextStyle::COUNT); ++i) {
+        const TextStyle style = static_cast<TextStyle>(i);
+        INFO("style: ", SoGui::GetTextStyleName(style));
+        CHECK(SoGui::GetTextMetrics(style).lineHeight == doctest::Approx(kLineHeights[static_cast<std::size_t>(i)]));
+    }
+    CHECK(std::string(SoGui::GetTextStyleName(TextStyle::Button14)) == "Button14");
+    CHECK(std::string(SoGui::GetTextStyleName(TextStyle::Copy13Mono)) == "Copy13Mono");
+}
+
 TEST_CASE_FIXTURE(TextFixture, "text metrics follow CSS em sizes and line heights") {
     BeginWindow();
     // Geist: unitsPerEm 1000, ascender 1005, descender -295

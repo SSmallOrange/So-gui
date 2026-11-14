@@ -35,7 +35,7 @@ constexpr std::array kCjkBold = {kNotoMedium, FontSource{"/usr/share/fonts/opent
 void LoadFonts() {
     if (!SoGui::AddFont(FontWeight::Regular, {kGeistRegular}, kCjkRegular))
         std::fprintf(stderr, "Failed to load font: %s\n", kGeistRegular);
-    SoGui::AddFont(FontWeight::Medium, {kGeistMedium}, kCjkRegular);
+    SoGui::AddFont(FontWeight::Medium, {kGeistMedium}, kCjkBold);
     SoGui::AddFont(FontWeight::SemiBold, {kGeistSemiBold}, kCjkBold);
     // 原生 ImGui 控件也使用 Geist
     if (ImFont* font = SoGui::GetFont(FontWeight::Regular))

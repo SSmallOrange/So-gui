@@ -3,11 +3,13 @@
 #include <sogui/core/font.h>
 #include <sogui/core/text.h>
 #include <sogui/core/theme.h>
+#include <sogui/widgets/button.h>
 
 #include <imgui.h>
 
 #include <array>
 #include <cstdio>
+#include <iterator>
 
 namespace SoGui {
 
@@ -191,6 +193,7 @@ void ShowTypographySection() {
 
     constexpr const char* kLabel = "Deployments 部署 · Build 2026.11.01 · 99.9%";
     constexpr const char* kHeading = "Typography 排版";
+    constexpr const char* kButton = "Upload 上传";
     constexpr const char* kCopy = "SoGui 使用 Geist Sans 渲染西文，中文优先使用自带的 Noto Sans SC 常用字子集，"
                                   "缺字时再用系统字体补齐。This paragraph wraps to the available width; "
                                   "调整窗口宽度，检查中英文混排、标点（，。！？）与数字 1234567890 的换行。";
@@ -198,10 +201,24 @@ void ShowTypographySection() {
         TextStyle style;
         const char* text;
     };
-    for (const Sample& sample : {Sample{TextStyle::Heading24, kHeading}, Sample{TextStyle::Label14, kLabel},
-                                 Sample{TextStyle::Copy14, kCopy}}) {
-        ImGui::TextDisabled("%s", GetTextStyleName(sample.style));
-        ShowSample(sample.text, sample.style, showBoxes);
+    for (int i = 0; i < static_cast<int>(TextStyle::COUNT); ++i) {
+        const TextStyle style = static_cast<TextStyle>(i);
+        const char* text = kLabel;
+        switch (GetTextStyleName(style)[0]) {
+        case 'H':
+            text = kHeading;
+            break;
+        case 'B':
+            text = kButton;
+            break;
+        case 'C':
+            text = kCopy;
+            break;
+        default:
+            break;
+        }
+        ImGui::TextDisabled("%s", GetTextStyleName(style));
+        ShowSample(text, style, showBoxes);
     }
 
     ImGui::TextDisabled("Mixed with native widgets");
@@ -230,6 +247,85 @@ void ShowTypographySection() {
     }
 }
 
+void ShowButtonSection() {
+    ImGui::SeparatorText("Button");
+    ImGui::Text("Frame %d", ImGui::GetFrameCount());
+
+    static bool loading = false;
+    const char* variantNames[] = {"Primary", "Secondary", "Tertiary", "Error", "Warning"};
+    const ButtonSize sizes[] = {ButtonSize::Small, ButtonSize::Medium, ButtonSize::Large};
+    const char* sizeNames[] = {"Small", "Medium", "Large"};
+    static_assert(std::size(variantNames) == static_cast<std::size_t>(ButtonVariant::COUNT));
+    static_assert(std::size(sizes) == static_cast<std::size_t>(ButtonSize::COUNT));
+
+    // Sizes × Variants
+    if (ImGui::BeginTable("ButtonGrid", 6, ImGuiTableFlags_SizingFixedFit)) {
+        ImGui::TableSetupColumn("Size");
+        for (const char* name : variantNames)
+            ImGui::TableSetupColumn(name);
+        ImGui::TableHeadersRow();
+        for (int s = 0; s < 3; ++s) {
+            ImGui::TableNextRow();
+            ImGui::TableSetColumnIndex(0);
+            ImGui::TextUnformatted(sizeNames[s]);
+            for (int v = 0; v < 5; ++v) {
+                ImGui::TableSetColumnIndex(v + 1);
+                ImGui::PushID(v);
+                Button("Upload", {.variant = static_cast<ButtonVariant>(v), .size = sizes[s]});
+                ImGui::PopID();
+            }
+        }
+        ImGui::EndTable();
+    }
+
+    // Disabled
+    ImGui::TextUnformatted("Disabled");
+    for (int v = 0; v < 5; ++v) {
+        if (v != 0)
+            ImGui::SameLine();
+        ImGui::PushID(v);
+        Button("Upload", {.variant = static_cast<ButtonVariant>(v), .disabled = true});
+        ImGui::PopID();
+    }
+
+    // Loading
+    ImGui::Checkbox("Loading", &loading);
+    for (int s = 0; s < 3; ++s) {
+        if (s != 0)
+            ImGui::SameLine();
+        ImGui::PushID(s);
+        Button("Loading...", {.size = sizes[s], .loading = loading});
+        ImGui::PopID();
+    }
+
+    // 中文
+    ImGui::TextUnformatted("中文");
+    Button("部署项目");
+    ImGui::SameLine();
+    Button("删除项目", {.variant = ButtonVariant::Error});
+    ImGui::SameLine();
+    Button("保存", {.size = ButtonSize::Large});
+
+    // Full width
+    ImGui::TextUnformatted("Full width");
+    Button("Upload", {.fullWidth = true});
+
+    // 点击计数
+    static int clickCount = 0;
+    if (Button("Click me"))
+        clickCount++;
+    ImGui::SameLine();
+    ImGui::Text("已点击 %d 次", clickCount);
+
+    // 混排
+    ImGui::TextUnformatted("混排");
+    ImGui::Button("Native");
+    ImGui::SameLine();
+    Button("Upload");
+    ImGui::SameLine();
+    Text("Label", TextStyle::Label14);
+}
+
 } // namespace
 
 void ShowDemoWindow(bool* open) {
@@ -240,6 +336,7 @@ void ShowDemoWindow(bool* open) {
     }
     ImGui::Text("Dear ImGui %s", IMGUI_VERSION);
     ShowThemeSection();
+    ShowButtonSection();
     ShowTypographySection();
     ShowPaletteSection();
     ShowSemanticSection();
