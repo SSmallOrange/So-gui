@@ -13,4 +13,9 @@ static_assert(IMGUI_VERSION_NUM >= 19200, "So-gui requires Dear ImGui 1.92 or ne
 #include <sogui/core/text.h>
 #include <sogui/core/theme.h>
 #include <sogui/demo/sogui_demo.h>
+#include <sogui/widgets/badge.h>
 #include <sogui/widgets/button.h>
+#include <sogui/widgets/note.h>
+#include <sogui/widgets/separator.h>
+#include <sogui/widgets/skeleton.h>
+#include <sogui/widgets/spinner.h>

@@ -84,6 +84,9 @@ const FontEntry* FindFont(FontWeight weight);
 
 // 在 pos（行盒左上角）画一行文字，不产生 ImGui item
 void RenderText(ImDrawList* drawList, ImVec2 pos, std::string_view text, TextStyle style, ImU32 color);
+// 在 pos（行盒左上角）按 wrapWidth 换行画多行文字，返回总高度（行数 × 行高）
+float RenderTextWrapped(ImDrawList* drawList, ImVec2 pos, std::string_view text, TextStyle style, float wrapWidth,
+                        ImU32 color);
 
 // Anim
 struct AnimState {

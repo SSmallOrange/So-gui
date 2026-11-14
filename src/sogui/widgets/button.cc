@@ -182,7 +182,7 @@ bool Button(const char* label, const ButtonOptions& options) {
     const float contentLeft = bb.Min.x + (size.x - contentWidth) * 0.5f;
     if (options.loading) {
         const ImVec2 center(contentLeft + Px(kSpinnerSlot) * 0.5f, (bb.Min.y + bb.Max.y) * 0.5f);
-        Spinner(drawList, center, sizeSpec.spinner, ToU32(ResolveColor(kSpinnerColor), baseAlpha));
+        SpinnerDraw(drawList, center, sizeSpec.spinner, ToU32(ResolveColor(kSpinnerColor), baseAlpha));
     }
     const ImVec2 textPos = SnapToPixel(ImVec2(contentLeft + spinnerWidth + Px(kLabelPaddingX), bb.Min.y + textTop));
     RenderText(drawList, textPos, text, sizeSpec.text, fgColor);

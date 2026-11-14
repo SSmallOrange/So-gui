@@ -17,12 +17,12 @@ TEST_CASE_FIXTURE(ThemeFixture, "color demo exposes palette values and native pr
     platform.Platform_GetClipboardTextFn = [](ImGuiContext*) {
         return static_cast<std::string*>(ImGui::GetPlatformIO().Platform_ClipboardUserData)->c_str();
     };
-    ImGui::GetIO().DisplaySize = ImVec2(1280.0f, 4400.0f);
+    ImGui::GetIO().DisplaySize = ImVec2(1280.0f, 6200.0f);
 
     BeginFrame();
     SoGui::ShowDemoWindow();
     EndFrame();
-    ImGui::SetWindowSize("So-gui demo", ImVec2(1100.0f, 4300.0f));
+    ImGui::SetWindowSize("So-gui demo", ImVec2(1100.0f, 5900.0f));
     ImGui::SetWindowPos("So-gui demo", ImVec2(0.0f, 0.0f));
 
     for (SoGui::ThemeId theme : {SoGui::ThemeId::Light, SoGui::ThemeId::Dark}) {
@@ -88,7 +88,7 @@ TEST_CASE_FIXTURE(ThemeFixture, "color demo exposes palette values and native pr
                                   "Click me",
                                   "已点击",
                                   "混排"}) {
-            INFO("Missing preview: ", label);
+            INFO("Missing preview: ", std::string(label));
             CHECK(output.find(label) != std::string::npos);
         }
         for (int i = 0; i < static_cast<int>(SoGui::Col::COUNT); ++i)
@@ -111,11 +111,13 @@ TEST_CASE_FIXTURE(ThemeFixture, "color demo exposes palette values and native pr
             EndFrame();
             SoGui::ConsumeRedrawRequest();
         }
-        // 过渡结束后再跑一帧，不应产生新的重绘请求
+        // 过渡结束后再跑一帧
         BeginFrame();
         SoGui::ShowDemoWindow();
         EndFrame();
-        CHECK_FALSE(SoGui::ConsumeRedrawRequest());
+        // 注意：Demo 含 Spinner / Skeleton 等持续动画组件，会一直请求重绘，
+        // 这里不再断言"无重绘请求"（Button 过渡结束的请求行为由 test_button / test_anim 覆盖）。
+        SoGui::ConsumeRedrawRequest();
     }
     platform.Platform_ClipboardUserData = nullptr;
     platform.Platform_SetClipboardTextFn = nullptr;
@@ -123,14 +125,14 @@ TEST_CASE_FIXTURE(ThemeFixture, "color demo exposes palette values and native pr
 }
 
 TEST_CASE_FIXTURE(ThemeFixture, "color demo content fits a tall window without logging") {
-    ImGui::GetIO().DisplaySize = ImVec2(1280.0f, 4400.0f);
+    ImGui::GetIO().DisplaySize = ImVec2(1280.0f, 6200.0f);
     BeginFrame();
     SoGui::ShowDemoWindow();
     EndFrame();
     ImGui::SetWindowPos("So-gui demo", ImVec2(0.0f, 0.0f));
 
     float previousHeight = 0.0f;
-    for (float height : {4000.0f, 4300.0f}) {
+    for (float height : {5600.0f, 5900.0f}) {
         ImGui::SetWindowSize("So-gui demo", ImVec2(1100.0f, height));
         for (int frame = 0; frame < 3; ++frame) {
             BeginFrame();

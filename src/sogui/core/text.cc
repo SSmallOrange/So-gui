@@ -249,6 +249,24 @@ void RenderText(ImDrawList* drawList, ImVec2 pos, std::string_view text, TextSty
         ImGui::LogRenderedText(&linePos, text.data(), text.data() + text.size());
 }
 
+float RenderTextWrapped(ImDrawList* drawList, ImVec2 pos, std::string_view text, TextStyle style, float wrapWidth,
+                        ImU32 color) {
+    if (text.empty())
+        return 0.0f;
+    const StyleScope scope(style);
+    const float lineHeight = scope.Metrics().lineHeight;
+    const float drawOffset = scope.DrawOffset();
+    const int lines = scope.ForEachLine(text, wrapWidth, [&](const char* begin, const char* end, int line) {
+        if (begin == end)
+            return;
+        const ImVec2 linePos(pos.x, pos.y + static_cast<float>(line) * lineHeight + drawOffset);
+        drawList->AddText(scope.Font(), scope.PixelSize(), linePos, color, begin, end);
+        if (GImGui->LogEnabled)
+            ImGui::LogRenderedText(&linePos, begin, end);
+    });
+    return static_cast<float>(lines) * lineHeight;
+}
+
 TextMetrics GetTextMetrics(TextStyle style) {
     const StyleScope scope(style);
     return scope.Metrics();

@@ -140,15 +140,15 @@ TEST_CASE_FIXTURE(DrawFixture, "FocusRing widths scale with the UI scale") {
     });
 }
 
-TEST_CASE("Spinner draws eight bars inside the diameter and keeps requesting frames") {
+TEST_CASE("SpinnerDraw draws bars inside the diameter and keeps requesting frames") {
     DrawFixture fixture;
     fixture.RunFrame([] {
         SoGui::ConsumeRedrawRequest();
         ImDrawList* drawList = ImGui::GetWindowDrawList();
         const ImVec2 center(200.0f, 150.0f);
-        for (float diameter : {12.0f, 16.0f, 20.0f, 40.0f}) {
+        for (float diameter : {12.0f, 16.0f, 20.0f, 24.0f, 32.0f, 40.0f, 56.0f}) {
             const int first = drawList->VtxBuffer.Size;
-            SoGui::Spinner(drawList, center, diameter, IM_COL32(100, 100, 100, 255));
+            SoGui::SpinnerDraw(drawList, center, diameter, IM_COL32(100, 100, 100, 255));
             CHECK(SoGui::ConsumeRedrawRequest());
             REQUIRE(drawList->VtxBuffer.Size > first);
             for (int i = first; i < drawList->VtxBuffer.Size; ++i) {
@@ -160,14 +160,15 @@ TEST_CASE("Spinner draws eight bars inside the diameter and keeps requesting fra
     });
 }
 
-TEST_CASE("Spinner bar opacity falls from 1 to 0.15 and is staggered by 125ms") {
+TEST_CASE("SpinnerDraw bar opacity falls from 1 to 0.15 and is staggered by one phase") {
     DrawFixture fixture;
     fixture.RunFrame([] {
         ImDrawList* drawList = ImGui::GetWindowDrawList();
         const int first = drawList->VtxBuffer.Size;
-        SoGui::Spinner(drawList, ImVec2(200.0f, 150.0f), 20.0f, IM_COL32(200, 200, 200, 255));
+        SoGui::SpinnerDraw(drawList, ImVec2(200.0f, 150.0f), 20.0f, IM_COL32(200, 200, 200, 255));
 
-        const double time = std::fmod(ImGui::GetTime(), 1.0);
+        // 20 档：12 根、周期 1.2s（见 doc/components/spinner.md）
+        const double time = std::fmod(ImGui::GetTime(), 1.2) / 1.2;
         std::multiset<int> actual;
         for (int i = first; i < drawList->VtxBuffer.Size; ++i) {
             const int alpha = static_cast<int>((drawList->VtxBuffer[i].col >> IM_COL32_A_SHIFT) & 0xFFU);
@@ -175,8 +176,8 @@ TEST_CASE("Spinner bar opacity falls from 1 to 0.15 and is staggered by 125ms") 
                 actual.insert(alpha);
         }
         std::vector<int> expected;
-        for (int i = 0; i < 8; ++i) {
-            const double phase = time + 0.875 - 0.125 * i;
+        for (int i = 0; i < 12; ++i) {
+            const double phase = time + 1.0 - static_cast<double>(i) / 12.0;
             const double alpha = 1.0 - 0.85 * (phase - std::floor(phase));
             expected.push_back(static_cast<int>(255.0 * alpha + 0.5));
         }

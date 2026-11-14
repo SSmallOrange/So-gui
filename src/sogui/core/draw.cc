@@ -23,18 +23,23 @@ struct SpinnerSpec {
     float barLength;
     float barThickness;
     float barDistance; // 短条中心到圆心的距离，为条长的 146%
+    int   barCount;
+    float period;      // 透明度循环周期（秒），短条 animation-delay 的跨度
 };
 
-// 1x 设计值，来自 Geist Spinner 的 size-3 / size-4 / size-5
+// 1x 设计值，来自 Geist Spinner 的 size-3 / size-4 / size-5 / size-6 / size-8 / size-10 / size-14，
+// 2026-11-14 抓取，见 doc/components/spinner.md
 constexpr SpinnerSpec kSpinners[] = {
-    {12.0f, 3.0f, 1.5f, 4.38f},
-    {16.0f, 4.0f, 1.5f, 5.84f},
-    {20.0f, 5.0f, 2.0f, 7.3f},
+    {12.0f, 3.0f, 1.5f, 4.38f, 8, 1.0f},
+    {16.0f, 4.0f, 1.5f, 5.84f, 10, 1.0f},
+    {20.0f, 5.0f, 2.0f, 7.3f, 12, 1.2f},
+    {24.0f, 6.0f, 2.5f, 8.76f, 12, 1.2f},
+    {32.0f, 8.0f, 2.5f, 11.68f, 15, 1.2f},
+    {40.0f, 10.0f, 3.0f, 14.6f, 15, 1.2f},
+    {56.0f, 14.0f, 3.5f, 20.44f, 18, 1.3f},
 };
 
-constexpr int   kSpinnerBarCount = 8;
 constexpr float kSpinnerMinAlpha = 0.15f;
-constexpr float kSpinnerBarDelay = 0.125f; // 秒，相邻两根错开
 constexpr int   kCapSegments = 6;
 constexpr float kPi = std::numbers::pi_v<float>;
 
@@ -43,9 +48,10 @@ SpinnerSpec SpinnerSpecFor(float diameter) {
         if (spec.diameter == diameter)
             return spec;
     }
-    const SpinnerSpec& base = kSpinners[std::size(kSpinners) - 1];
+    const SpinnerSpec& base = kSpinners[2]; // 20 那档
     const float factor = diameter / base.diameter;
-    return {diameter, base.barLength * factor, base.barThickness * factor, base.barDistance * factor};
+    return {diameter, base.barLength * factor, base.barThickness * factor, base.barDistance * factor, base.barCount,
+            base.period};
 }
 
 ImU32 WithAlpha(ImU32 color, float alpha) {
@@ -100,15 +106,16 @@ void FocusRing(ImDrawList* drawList, ImVec2 min, ImVec2 max, float rounding) {
              gap);
 }
 
-void Spinner(ImDrawList* drawList, ImVec2 center, float diameter, ImU32 color) {
+void SpinnerDraw(ImDrawList* drawList, ImVec2 center, float diameter, ImU32 color) {
     const SpinnerSpec spec = SpinnerSpecFor(diameter);
     const float scale = GetScale();
-    const float time = static_cast<float>(std::fmod(ImGui::GetTime(), 1.0));
-    for (int i = 0; i < kSpinnerBarCount; ++i) {
-        // CSS: 1s linear 动画，第 i 根的延迟为 (i - 7) * 125ms
-        const float phase = time + 0.875f - kSpinnerBarDelay * static_cast<float>(i);
+    // CSS：opacity 在 period 秒内从 1 线性降到 0.15 循环，第 i 根的延迟为 -(period - period/N × i)
+    const float time = static_cast<float>(std::fmod(ImGui::GetTime(), spec.period)) / spec.period;
+    const float step = kPi * 2.0f / static_cast<float>(spec.barCount);
+    for (int i = 0; i < spec.barCount; ++i) {
+        const float phase = time + 1.0f - static_cast<float>(i) / static_cast<float>(spec.barCount);
         const float alpha = 1.0f - (1.0f - kSpinnerMinAlpha) * (phase - std::floor(phase));
-        const float angle = kPi * 0.25f * static_cast<float>(i);
+        const float angle = step * static_cast<float>(i);
         const ImVec2 dir(std::cos(angle), std::sin(angle));
         Capsule(drawList, center + dir * (spec.barDistance * scale), angle, spec.barLength * scale,
                 spec.barThickness * scale, WithAlpha(color, alpha));

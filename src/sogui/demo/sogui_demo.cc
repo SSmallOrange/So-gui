@@ -3,7 +3,12 @@
 #include <sogui/core/font.h>
 #include <sogui/core/text.h>
 #include <sogui/core/theme.h>
+#include <sogui/widgets/badge.h>
 #include <sogui/widgets/button.h>
+#include <sogui/widgets/note.h>
+#include <sogui/widgets/separator.h>
+#include <sogui/widgets/skeleton.h>
+#include <sogui/widgets/spinner.h>
 
 #include <imgui.h>
 
@@ -326,6 +331,89 @@ void ShowButtonSection() {
     Text("Label", TextStyle::Label14);
 }
 
+void ShowSeparatorSection() {
+    ImGui::SeparatorText("Separator");
+    ImGui::TextUnformatted("Above");
+    SoGui::Separator();
+    ImGui::TextUnformatted("Below");
+}
+
+void ShowSpinnerSection() {
+    ImGui::SeparatorText("Spinner");
+    ImGui::Text("Frame %d", ImGui::GetFrameCount());
+
+    constexpr std::array diameters = {12.0f, 16.0f, 20.0f, 24.0f, 32.0f, 40.0f, 56.0f};
+    for (const float diameter : diameters) {
+        Spinner(diameter);
+        ImGui::SameLine();
+    }
+    ImGui::NewLine();
+
+    constexpr std::array colorNames = {"default", "red", "green", "blue"};
+    constexpr std::array spinnerColors = {SpinnerColor::Default, SpinnerColor::Red, SpinnerColor::Green,
+                                          SpinnerColor::Blue};
+    for (std::size_t i = 0; i < colorNames.size(); ++i) {
+        ImGui::TextUnformatted(colorNames[i]);
+        ImGui::SameLine();
+        Spinner(20.0f, {.color = spinnerColors[i]});
+        ImGui::SameLine(0.0f, 20.0f);
+    }
+    ImGui::NewLine();
+}
+
+void ShowBadgeSection() {
+    ImGui::SeparatorText("Badge");
+    constexpr std::array variantNames = {"gray",       "gray-subtle", "blue",       "blue-subtle", "purple",
+                                         "purple-subtle", "amber",     "amber-subtle", "red",       "red-subtle",
+                                         "pink",       "pink-subtle", "green",       "green-subtle", "teal",
+                                         "teal-subtle", "inverted"};
+    static_assert(variantNames.size() == static_cast<std::size_t>(BadgeVariant::COUNT));
+    constexpr std::array labels = {"Ready", "New", "Beta", "Stable", "Warning", "Error"};
+    for (std::size_t i = 0; i < variantNames.size(); ++i) {
+        Badge(labels[i % labels.size()], {.variant = static_cast<BadgeVariant>(i)});
+        ImGui::SameLine();
+    }
+    ImGui::NewLine();
+
+    constexpr std::array sizes = {BadgeSize::Small, BadgeSize::Medium, BadgeSize::Large};
+    constexpr std::array sizeNames = {"Small", "Medium", "Large"};
+    for (std::size_t i = 0; i < sizes.size(); ++i) {
+        ImGui::TextUnformatted(sizeNames[i]);
+        ImGui::SameLine();
+        Badge("Deploy", {.variant = BadgeVariant::Blue, .size = sizes[i]});
+        ImGui::SameLine(0.0f, 16.0f);
+    }
+    ImGui::NewLine();
+
+    ImGui::TextUnformatted("中文");
+    Badge("部署");
+    ImGui::SameLine();
+    Badge("已删除", {.variant = BadgeVariant::Red});
+    ImGui::SameLine();
+    Badge("测试中", {.variant = BadgeVariant::Amber});
+}
+
+void ShowNoteSection() {
+    ImGui::SeparatorText("Note");
+    constexpr std::array typeNames = {"Default", "Success", "Error", "Warning", "Secondary", "Violet", "Cyan"};
+    static_assert(typeNames.size() == static_cast<std::size_t>(NoteType::COUNT));
+    for (std::size_t i = 0; i < typeNames.size(); ++i) {
+        Note("Note", "This is a note.", {.type = static_cast<NoteType>(i)});
+        Note("Note", "This is a filled note.", {.type = static_cast<NoteType>(i), .filled = true});
+    }
+    Note("Note", "Small note.", {.type = NoteType::Default, .size = NoteSize::Small});
+    Note("区域变更", "这是中文提示，内容会自动换行，长文本会撑高容器高度，与官网 Note 的 break-words 行为一致。",
+         {.type = NoteType::Warning});
+}
+
+void ShowSkeletonSection() {
+    ImGui::SeparatorText("Skeleton");
+    Skeleton(ImVec2(200.0f, 20.0f));
+    Skeleton(ImVec2(48.0f, 48.0f), {.variant = SkeletonVariant::Pill});
+    Skeleton(ImVec2(120.0f, 20.0f), {.variant = SkeletonVariant::Squared});
+    Skeleton(ImVec2(160.0f, 20.0f), {.animate = false});
+}
+
 } // namespace
 
 void ShowDemoWindow(bool* open) {
@@ -337,6 +425,11 @@ void ShowDemoWindow(bool* open) {
     ImGui::Text("Dear ImGui %s", IMGUI_VERSION);
     ShowThemeSection();
     ShowButtonSection();
+    ShowBadgeSection();
+    ShowNoteSection();
+    ShowSkeletonSection();
+    ShowSpinnerSection();
+    ShowSeparatorSection();
     ShowTypographySection();
     ShowPaletteSection();
     ShowSemanticSection();
