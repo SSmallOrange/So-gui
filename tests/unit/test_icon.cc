@@ -4,7 +4,6 @@
 
 #include <doctest/doctest.h>
 
-#include <algorithm>
 #include <string>
 #include <vector>
 
@@ -53,26 +52,45 @@ TEST_CASE_FIXTURE(ThemeFixture, "Icon None draws nothing") {
     });
 }
 
-TEST_CASE_FIXTURE(ThemeFixture, "IconDraw centers the glyph") {
+TEST_CASE_FIXTURE(ThemeFixture, "IconDraw centers the em box at the requested size") {
     REQUIRE(SoGui::AddIconFont({kLucide}));
     RunFrame([] {
         ImDrawList* drawList = ImGui::GetWindowDrawList();
+        const SoGui::FontEntry* entry = SoGui::FindIconFont();
+        REQUIRE(entry != nullptr);
+        constexpr float kSize = 20.0f;
         const ImVec2 center(100.0f, 100.0f);
-        const int first = drawList->VtxBuffer.Size;
-        SoGui::IconDraw(drawList, center, IconId::Check, 20.0f, IM_COL32_WHITE);
-        REQUIRE(drawList->VtxBuffer.Size > first);
-        float minX = center.x, maxX = center.x, minY = center.y, maxY = center.y;
-        for (int i = first; i < drawList->VtxBuffer.Size; ++i) {
-            minX = std::min(minX, drawList->VtxBuffer[i].pos.x);
-            maxX = std::max(maxX, drawList->VtxBuffer[i].pos.x);
-            minY = std::min(minY, drawList->VtxBuffer[i].pos.y);
-            maxY = std::max(maxY, drawList->VtxBuffer[i].pos.y);
+        // chevron-down 扁、check 接近方形：都按同一个 em 方框放置，字号不随字形边界框变化
+        for (const IconId id : {IconId::ChevronDown, IconId::Check}) {
+            CAPTURE(static_cast<unsigned>(id));
+            const int first = drawList->VtxBuffer.Size;
+            SoGui::IconDraw(drawList, center, id, kSize, IM_COL32_WHITE);
+            REQUIRE(drawList->VtxBuffer.Size > first);
+            ImVec2 quadMin = drawList->VtxBuffer[first].pos;
+            ImVec2 quadMax = quadMin;
+            for (int i = first + 1; i < drawList->VtxBuffer.Size; ++i) {
+                quadMin = ImMin(quadMin, drawList->VtxBuffer[i].pos);
+                quadMax = ImMax(quadMax, drawList->VtxBuffer[i].pos);
+            }
+
+            ImGui::PushFont(entry->font, kSize * entry->heightPerEm);
+            ImFontBaked* baked = ImGui::GetFontBaked();
+            const float pixelSize = ImGui::GetFontSize();
+            const float scale = pixelSize / baked->Size;
+            const float em = pixelSize / entry->heightPerEm;
+            const float baseline = baked->Ascent * scale;
+            const ImFontGlyph* glyph = baked->FindGlyph(static_cast<ImWchar>(static_cast<unsigned>(id)));
+            ImGui::PopFont();
+            REQUIRE(glyph != nullptr);
+
+            // 四边形尺寸等于字形在 kSize 字号下的尺寸，即没有按字形边界框换算字号
+            CHECK(quadMax.x - quadMin.x == doctest::Approx((glyph->X1 - glyph->X0) * scale));
+            CHECK(quadMax.y - quadMin.y == doctest::Approx((glyph->Y1 - glyph->Y0) * scale));
+            // 由贴图四边形反推绘制位置 pos，em 方框 pos + (0, baseline - em) ~ (em, baseline) 的中心应落在 center
+            const ImVec2 pos(quadMin.x - glyph->X0 * scale, quadMin.y - glyph->Y0 * scale);
+            CHECK(pos.x + em * 0.5f == doctest::Approx(center.x));
+            CHECK(pos.y + baseline - em * 0.5f == doctest::Approx(center.y));
         }
-        // 字形墨迹盒居中于 center，且墨迹尺寸等于请求的图标盒（Lucide 字形墨迹约 1.55em，
-        // 必须按墨迹占比换算字号，否则图标会明显偏大）
-        CHECK((minX + maxX) * 0.5f == doctest::Approx(center.x).epsilon(0.5));
-        CHECK((minY + maxY) * 0.5f == doctest::Approx(center.y).epsilon(0.5));
-        CHECK(maxY - minY == doctest::Approx(20.0f).epsilon(0.1));
     });
 }
 

@@ -35,6 +35,7 @@ struct ButtonFixture : ThemeFixture {
     explicit ButtonFixture(const SoGui::ContextConfig& config = {}) : ThemeFixture(config) {
         REQUIRE(SoGui::AddFont(SoGui::FontWeight::Regular, {FontPath("Geist-Regular.ttf").c_str()}));
         REQUIRE(SoGui::AddFont(SoGui::FontWeight::Medium, {FontPath("Geist-Medium.ttf").c_str()}));
+        REQUIRE(SoGui::AddIconFont({SOGUI_TEST_LUCIDE_FONT_DIR "/lucide.ttf"}));
     }
 
     void Frame(const ButtonOptions& options = {}, const char* label = kLabel) {
@@ -112,6 +113,32 @@ TEST_CASE_FIXTURE(ButtonFixture, "loading adds a spinner slot plus gap to the wi
         SoGui::Button(kLabel, {.loading = true});
         const ImVec2 size = ImGui::GetItemRectSize();
         CHECK(size.x == doctest::Approx(textWidth + 2.0f * (10.0f + 6.0f) + 20.0f + 3.0f));
+    });
+}
+
+TEST_CASE_FIXTURE(ButtonFixture, "icon slots replace the label padding") {
+    RunFrame([] {
+        const float textWidth = SoGui::CalcTextSize(kLabel, TextStyle::Button14).x;
+        SoGui::Button(kLabel, {.prefix = SoGui::IconId::Search});
+        const ImVec2 prefixSize = ImGui::GetItemRectSize();
+        CHECK(prefixSize.x == doctest::Approx(textWidth + 2.0f * 10.0f + 20.0f + 3.0f));
+        SoGui::Button(kLabel, {.prefix = SoGui::IconId::Search, .suffix = SoGui::IconId::ChevronDown});
+        const ImVec2 bothSize = ImGui::GetItemRectSize();
+        CHECK(bothSize.x == doctest::Approx(textWidth + 2.0f * 10.0f + 2.0f * (20.0f + 3.0f)));
+    });
+}
+
+TEST_CASE_FIXTURE(ButtonFixture, "svgOnly button is a square with a centered icon") {
+    RunFrame([&] {
+        const ImDrawList* drawList = ImGui::GetWindowDrawList();
+        const int first = drawList->VtxBuffer.Size;
+        clicked = SoGui::Button("##icon",
+                                {.svgOnly = true, .prefix = SoGui::IconId::Check, .variant = SoGui::ButtonVariant::Secondary});
+        const ImVec2 size = ImGui::GetItemRectSize();
+        CHECK(size.x == doctest::Approx(36.0f));
+        CHECK(size.y == doctest::Approx(36.0f));
+        REQUIRE(drawList->VtxBuffer.Size > first);
+        CHECK_FALSE(clicked);
     });
 }
 

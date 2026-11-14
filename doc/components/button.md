@@ -100,11 +100,12 @@ bool Button(const char* label, const ButtonOptions& options = {});
 - 150ms 颜色过渡、loading Spinner 动画
 - 与原生 `ImGui::Text`、`SoGui::Text` 的基线对齐
 - 禁用时抵消 ImGui 的 `DisabledAlpha`，用 Token 里的禁用色
+- `prefix` / `suffix` 前后图标：槽位 `min-w-5`（20px，图标 14px 居中）+ `mr-[3px]`（3px），与 Spinner 槽同构；带图标时文字两侧 `px-1.5` 由槽位取代（官网实测 2026-11-15）
+- `svgOnly` 纯图标按钮：正方形（宽 = 高），图标 16px（`size-4`）居中；`shape=circle` 为全圆角
 
 ## 暂未实现
 
-- `prefix` / `suffix` 前后图标（等 Lucide 图标接入）
-- `svgOnly` + `shape`（square / circle）纯图标按钮
+- 官网 svgOnly 的 24 / 28 高 mini 尺寸档（So-gui 只做 32 / 36 / 40）
 - `shape="rounded"` + 阴影（等 Material 阴影）
 
 ## 不实现

@@ -329,6 +329,18 @@ void ShowButtonSection() {
     Button("Upload");
     ImGui::SameLine();
     Text("Label", TextStyle::Label14);
+
+    // 图标按钮
+    ImGui::TextUnformatted("图标");
+    Button("Upload", {.prefix = IconId::Upload});
+    ImGui::SameLine();
+    Button("Download", {.suffix = IconId::Download});
+    ImGui::SameLine();
+    Button("##chevron", {.variant = ButtonVariant::Secondary, .prefix = IconId::ChevronDown, .svgOnly = true});
+    ImGui::SameLine();
+    Button("##check", {.shape = ButtonShape::Circle, .prefix = IconId::Check, .svgOnly = true});
+    ImGui::SameLine();
+    Button("##search", {.variant = ButtonVariant::Tertiary, .prefix = IconId::Search, .svgOnly = true});
 }
 
 void ShowSeparatorSection() {

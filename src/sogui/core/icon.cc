@@ -26,29 +26,18 @@ void IconDraw(ImDrawList* drawList, ImVec2 center, IconId id, float size, ImU32 
     if (entry == nullptr)
         return;
 
-    // Lucide 字形的墨迹盒与 em 不成标准比例（约 1.55em 高），先用参考字号测出墨迹占比，
-    // 再换算出让墨迹正好填满 size x size 图标盒的字号
     ImGui::PushFont(entry->font, size * entry->heightPerEm);
-    ImFontBaked* reference = ImGui::GetFontBaked();
-    const ImFontGlyph* probe = reference->FindGlyph(static_cast<ImWchar>(static_cast<unsigned>(id)));
-    const float inkRatio = (probe->Y1 - probe->Y0) / reference->Size; // 墨迹高 / 字号，与字号无关
-    ImGui::PopFont();
-    if (inkRatio <= 0.0f)
-        return;
-
-    const float fontPx = size / inkRatio;
-    ImGui::PushFont(entry->font, fontPx * entry->heightPerEm);
     ImFont* font = ImGui::GetFont();
-    ImFontBaked* baked = ImGui::GetFontBaked();
-    const ImFontGlyph* glyph = baked->FindGlyph(static_cast<ImWchar>(static_cast<unsigned>(id)));
-    const float scale = fontPx / baked->Size;
+    const ImFontBaked* baked = ImGui::GetFontBaked();
+    const float pixelSize = ImGui::GetFontSize();
+    const float em = pixelSize / entry->heightPerEm;
+    const float baseline = baked->Ascent * pixelSize / baked->Size; // ImGui 把基线放在绘制位置 + Ascent 处
 
     char text[4];
     EncodeIcon(static_cast<unsigned>(id), text);
-    // AddText 的 pos 是光标位置（基线），字形墨迹在 pos + (X0,Y0) ~ (X1,Y1)；平移使墨迹盒中心 = center
-    const ImVec2 pos(center.x - (glyph->X0 + glyph->X1) * 0.5f * scale,
-                     center.y - (glyph->Y0 + glyph->Y1) * 0.5f * scale);
-    drawList->AddText(font, fontPx, pos, color, text, text + 3);
+    // em 方框位于 pos + (0, baseline - em) ~ (em, baseline)。ImGui 会截断绘制位置，这里先四舍五入
+    const ImVec2 pos(IM_ROUND(center.x - em * 0.5f), IM_ROUND(center.y - baseline + em * 0.5f));
+    drawList->AddText(font, pixelSize, pos, color, text, text + 3);
     ImGui::PopFont();
 }
 

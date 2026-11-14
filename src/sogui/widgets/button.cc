@@ -96,6 +96,10 @@ static_assert(std::size(kSizes) == static_cast<size_t>(ButtonSize::COUNT), "Ever
 constexpr float kLabelPaddingX = 6.0f;   // 文字的 px-1.5
 constexpr float kSpinnerSlot   = 20.0f;  // min-w-5
 constexpr float kSpinnerGap    = 3.0f;   // mr-[3px]
+constexpr float kIconSlot      = 20.0f;  // 图标槽 min-w-5（图标居中），与 Spinner 槽同构
+constexpr float kIconGap       = 3.0f;   // 图标槽与文字间距 mr-[3px]
+constexpr float kIconSize      = 14.0f;  // --ds-control-decoration-size，带文字时的图标
+constexpr float kIconOnlySize  = 16.0f;  // svgOnly 的图标（官网实测 size-4）
 
 constexpr ColorRef kSpinnerColor = Sem(Col::TextDisabled);
 
@@ -132,13 +136,22 @@ bool Button(const char* label, const ButtonOptions& options) {
     const ImGuiID id = window->GetID(label);
     const std::string_view text(label, static_cast<size_t>(ImGui::FindRenderedTextEnd(label) - label));
 
-    // 尺寸
+    // 尺寸：图标槽（20px 槽 + 3px 间距）与 Spinner 槽同构；带图标时文字两侧的 px-1.5
+    // 由槽位取代（官网实测，2026-11-15 抓取），loading 时保留（Button 方案）
     const float nativeAscent = ImGui::GetFontBaked()->Ascent;
     const TextMetrics metrics = GetTextMetrics(sizeSpec.text);
+    const bool hasIcon = options.prefix != IconId::None || options.suffix != IconId::None;
     const float spinnerWidth = options.loading ? Px(kSpinnerSlot + kSpinnerGap) : 0.0f;
-    const float contentWidth = spinnerWidth + Px(kLabelPaddingX) * 2.0f + CalcTextSize(text, sizeSpec.text).x;
-    float width = Px(sizeSpec.paddingX) * 2.0f + contentWidth;
-    if (options.fullWidth)
+    const float iconSlot = Px(kIconSlot + kIconGap);
+    const float prefixWidth = options.prefix != IconId::None ? iconSlot : 0.0f;
+    const float suffixWidth = options.suffix != IconId::None ? iconSlot : 0.0f;
+    const float labelPaddingX = hasIcon ? 0.0f : Px(kLabelPaddingX);
+    const float textWidth = options.svgOnly ? 0.0f : CalcTextSize(text, sizeSpec.text).x;
+    const float contentWidth = options.svgOnly
+                                   ? (options.loading ? Px(kSpinnerSlot) : Px(kIconOnlySize))
+                                   : prefixWidth + spinnerWidth + labelPaddingX * 2.0f + textWidth + suffixWidth;
+    float width = options.svgOnly ? Px(sizeSpec.height) : Px(sizeSpec.paddingX) * 2.0f + contentWidth;
+    if (options.fullWidth && !options.svgOnly)
         width = ImMax(width, ImGui::GetContentRegionAvail().x);
     const ImVec2 size = SnapToPixel(ImVec2(width, Px(sizeSpec.height)));
 
@@ -173,19 +186,34 @@ bool Button(const char* label, const ButtonOptions& options) {
 
     // 绘制
     ImDrawList* drawList = window->DrawList;
-    const float rounding = Px(sizeSpec.rounding);
+    const float rounding = options.shape == ButtonShape::Circle ? size.y * 0.5f : Px(sizeSpec.rounding);
     if (interaction.focusVisible)
         FocusRing(drawList, bb.Min, bb.Max, rounding);
     RectRing(drawList, bb.Min, bb.Max, borderColor, rounding, SnapStroke(Px(Metrics::kBorderWidth)));
     RectFilled(drawList, bb.Min, bb.Max, bgColor, rounding);
 
+    const float centerY = (bb.Min.y + bb.Max.y) * 0.5f;
     const float contentLeft = bb.Min.x + (size.x - contentWidth) * 0.5f;
-    if (options.loading) {
-        const ImVec2 center(contentLeft + Px(kSpinnerSlot) * 0.5f, (bb.Min.y + bb.Max.y) * 0.5f);
-        SpinnerDraw(drawList, center, sizeSpec.spinner, ToU32(ResolveColor(kSpinnerColor), baseAlpha));
+    float x = contentLeft;
+    if (options.prefix != IconId::None && !options.svgOnly) {
+        IconDraw(drawList, ImVec2(x + Px(kIconSlot) * 0.5f, centerY), options.prefix, kIconSize, fgColor);
+        x += prefixWidth;
     }
-    const ImVec2 textPos = SnapToPixel(ImVec2(contentLeft + spinnerWidth + Px(kLabelPaddingX), bb.Min.y + textTop));
-    RenderText(drawList, textPos, text, sizeSpec.text, fgColor);
+    if (options.loading) {
+        SpinnerDraw(drawList, ImVec2(x + Px(kSpinnerSlot) * 0.5f, centerY), sizeSpec.spinner,
+                    ToU32(ResolveColor(kSpinnerColor), baseAlpha));
+        x += spinnerWidth;
+    }
+    if (options.svgOnly) {
+        // svgOnly 用 prefix 作为图标（官网 svgOnly 只传一个 icon）
+        IconDraw(drawList, ImVec2(x + Px(kIconOnlySize) * 0.5f, centerY), options.prefix, kIconOnlySize, fgColor);
+    } else {
+        const ImVec2 textPos = SnapToPixel(ImVec2(x + labelPaddingX, bb.Min.y + textTop));
+        RenderText(drawList, textPos, text, sizeSpec.text, fgColor);
+        x += labelPaddingX + textWidth + labelPaddingX;
+    }
+    if (options.suffix != IconId::None && !options.svgOnly)
+        IconDraw(drawList, ImVec2(x + Px(kIconSlot) * 0.5f, centerY), options.suffix, kIconSize, fgColor);
 
     ImGui::EndDisabled();
     return interaction.clicked;
